@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Provão CBMPA – Vidas Alheias</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f0f1a; color: #ecf0f1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
+  .badge { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 50px; padding: 6px 18px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 20px; }
+  h1 { font-size: clamp(28px, 5vw, 52px); font-weight: 900; text-align: center; line-height: 1.1; margin-bottom: 10px; }
+  h1 span { color: #f39c12; }
+  p { color: rgba(255,255,255,0.6); margin-bottom: 50px; text-align: center; font-size: 16px; }
+  .cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .card { background: #16213e; border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 40px 36px; width: 300px; text-align: center; text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+  .card-a:hover { border-color: #e74c3c; } .card-b:hover { border-color: #f39c12; } .card-c:hover { border-color: #c0392b; }
+  .icon { font-size: 64px; margin-bottom: 20px; display: block; }
+  .card h2 { font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+  .card p { font-size: 14px; color: rgba(255,255,255,0.55); margin: 0; }
+  .tag { display: inline-block; margin-top: 20px; padding: 8px 20px; border-radius: 50px; font-size: 13px; font-weight: 700; color: white; }
+  .tag-red { background: #c0392b; } .tag-orange { background: #e67e22; } .tag-fire { background: #c0392b; }
+  footer { margin-top: 60px; color: rgba(255,255,255,0.3); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+  <div class="badge">📚 CBMPA 2025</div>
+  <h1>Caderno <span>Vidas Alheias</span></h1>
+  <p>Escolha o que você quer estudar agora</p>
+  <div class="cards">
+    <a class="card card-a" href="resumao_materias.html"><span class="icon">📖</span><h2>Resumão das Matérias</h2><p>10 matérias com cards, tabelas, conceitos-chave e pontos quentes para o provão</p><span class="tag tag-red">Estudar agora →</span></a>
+    <a class="card card-b" href="simulado_20_questoes.html"><span class="icon">🎯</span><h2>Simulado – 20 Questões</h2><p>2 questões por matéria, 5 alternativas, feedback imediato e placar ao vivo</p><span class="tag tag-orange">Fazer simulado →</span></a>
+    <a class="card card-c" href="simulado_provao_bombeiros.html"><span class="icon">🔥</span><h2>Provão Bombeiros – 40 Questões</h2><p>Fácil · Moderado · Difícil — análise de fragilidade por nível e por matéria</p><span class="tag tag-fire">Iniciar provão →</span></a>
+  </div>
+  <footer>Provão CBMPA · Caderno Vidas Alheias · 10 matérias · 488 páginas</footer>
+</body>
+</html>
