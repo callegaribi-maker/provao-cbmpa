@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumão Provão CBMPA – Vidas Alheias</title>
+<style>
+  :root {
+    --red: #c0392b;
+    --dark-red: #922b21;
+    --orange: #e67e22;
+    --yellow: #f1c40f;
+    --green: #27ae60;
+    --blue: #2980b9;
+    --dark-blue: #1a5276;
+    --purple: #8e44ad;
+    --teal: #16a085;
+    --dark: #1a1a2e;
+    --darker: #0f0f1a;
+    --card-bg: #16213e;
+    --text: #ecf0f1;
+    --muted: #95a5a6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--darker);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #c0392b 0%, #1a1a2e 60%);
+    padding: 60px 20px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50px;
+    padding: 6px 18px;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1.1;
+    margin-bottom: 12px;
+  }
+  .hero h1 span { color: #f39c12; }
+  .hero p { font-size: 18px; color: rgba(255,255,255,0.75); max-width: 600px; margin: 0 auto 30px; }
+  .hero-stats {
+    display: flex; justify-content: center; gap: 40px; flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-size: 36px; font-weight: 900; color: #f39c12; }
+  .stat-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
+
+  /* NAV PILLS */
+  .nav-wrap {
+    background: var(--dark);
+    padding: 16px 20px;
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-pill {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50px;
+    padding: 6px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text);
+    text-decoration: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-pill:hover { background: var(--red); border-color: var(--red); }
+
+  /* SECTIONS */
+  .container { max-width: 1100px; margin: 0 auto; padding: 60px 20px; }
+  .section-title {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 3px;
+    color: var(--muted); margin-bottom: 40px; text-align: center;
+  }
+
+  /* SUBJECT CARDS */
+  .subject-section {
+    margin-bottom: 80px;
+    scroll-margin-top: 80px;
+  }
+  .subject-header {
+    display: flex; align-items: center; gap: 20px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid;
+  }
+  .subject-icon {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+  .subject-header h2 { font-size: 28px; font-weight: 800; }
+  .subject-header .cap { font-size: 13px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.6; }
+
+  /* CARDS GRID */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 22px;
+    border: 1px solid rgba(255,255,255,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,0,0,0.4); }
+  .card-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    width: 20px; height: 3px; border-radius: 2px;
+    background: currentColor; flex-shrink: 0;
+  }
+  .card ul { list-style: none; }
+  .card ul li {
+    padding: 5px 0;
+    font-size: 14px;
+    color: rgba(255,255,255,0.85);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .card ul li:last-child { border-bottom: none; }
+  .card ul li::before { content: '›'; flex-shrink: 0; opacity: 0.5; }
+
+  /* ALERT BOX */
+  .alert-box {
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 1.6;
+    display: flex; gap: 12px; align-items: flex-start;
+    border: 1px solid;
+  }
+  .alert-box .icon { font-size: 22px; flex-shrink: 0; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; margin-top: 16px; }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+    background: var(--card-bg); border-radius: 12px; overflow: hidden;
+  }
+  thead { background: rgba(255,255,255,0.1); }
+  th { padding: 12px 16px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+  td { padding: 11px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.03); }
+
+  /* STEPS */
+  .steps { counter-reset: step; display: flex; flex-direction: column; gap: 10px; }
+  .step {
+    counter-increment: step;
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 14px 18px;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .step::before {
+    content: counter(step);
+    min-width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .step-content strong { display: block; font-size: 14px; margin-bottom: 3px; }
+  .step-content span { font-size: 13px; color: rgba(255,255,255,0.65); }
+
+  /* COLOR THEMES */
+  .theme-red .subject-header { border-color: var(--red); }
+  .theme-red .subject-icon { background: rgba(192,57,43,0.2); color: var(--red); }
+  .theme-red .subject-header h2 { color: #e74c3c; }
+  .theme-red .card-title { color: #e74c3c; }
+  .theme-red .step::before { background: var(--red); color: white; }
+  .theme-red .alert-box { background: rgba(192,57,43,0.15); border-color: rgba(192,57,43,0.4); }
+
+  .theme-orange .subject-header { border-color: var(--orange); }
+  .theme-orange .subject-icon { background: rgba(230,126,34,0.2); color: var(--orange); }
+  .theme-orange .subject-header h2 { color: #e67e22; }
+  .theme-orange .card-title { color: #e67e22; }
+  .theme-orange .step::before { background: var(--orange); color: white; }
+  .theme-orange .alert-box { background: rgba(230,126,34,0.15); border-color: rgba(230,126,34,0.4); }
+
+  .theme-yellow .subject-header { border-color: var(--yellow); }
+  .theme-yellow .subject-icon { background: rgba(241,196,15,0.15); color: var(--yellow); }
+  .theme-yellow .subject-header h2 { color: #f1c40f; }
+  .theme-yellow .card-title { color: #f1c40f; }
+  .theme-yellow .step::before { background: var(--yellow); color: #1a1a2e; }
+  .theme-yellow .alert-box { background: rgba(241,196,15,0.1); border-color: rgba(241,196,15,0.35); }
+
+  .theme-green .subject-header { border-color: var(--green); }
+  .theme-green .subject-icon { background: rgba(39,174,96,0.2); color: var(--green); }
+  .theme-green .subject-header h2 { color: #2ecc71; }
+  .theme-green .card-title { color: #2ecc71; }
+  .theme-green .step::before { background: var(--green); color: white; }
+  .theme-green .alert-box { background: rgba(39,174,96,0.15); border-color: rgba(39,174,96,0.4); }
+
+  .theme-blue .subject-header { border-color: var(--blue); }
+  .theme-blue .subject-icon { background: rgba(41,128,185,0.2); color: var(--blue); }
+  .theme-blue .subject-header h2 { color: #3498db; }
+  .theme-blue .card-title { color: #3498db; }
+  .theme-blue .step::before { background: var(--blue); color: white; }
+  .theme-blue .alert-box { background: rgba(41,128,185,0.15); border-color: rgba(41,128,185,0.4); }
+
+  .theme-teal .subject-header { border-color: var(--teal); }
+  .theme-teal .subject-icon { background: rgba(22,160,133,0.2); color: var(--teal); }
+  .theme-teal .subject-header h2 { color: #1abc9c; }
+  .theme-teal .card-title { color: #1abc9c; }
+  .theme-teal .step::before { background: var(--teal); color: white; }
+  .theme-teal .alert-box { background: rgba(22,160,133,0.15); border-color: rgba(22,160,133,0.4); }
+
+  .theme-purple .subject-header { border-color: var(--purple); }
+  .theme-purple .subject-icon { background: rgba(142,68,173,0.2); color: var(--purple); }
+  .theme-purple .subject-header h2 { color: #9b59b6; }
+  .theme-purple .card-title { color: #9b59b6; }
+  .theme-purple .step::before { background: var(--purple); color: white; }
+  .theme-purple .alert-box { background: rgba(142,68,173,0.15); border-color: rgba(142,68,173,0.4); }
+
+  .theme-darkblue .subject-header { border-color: var(--dark-blue); }
+  .theme-darkblue .subject-icon { background: rgba(26,82,118,0.3); color: #5dade2; }
+  .theme-darkblue .subject-header h2 { color: #5dade2; }
+  .theme-darkblue .card-title { color: #5dade2; }
+  .theme-darkblue .step::before { background: var(--dark-blue); color: white; }
+  .theme-darkblue .alert-box { background: rgba(26,82,118,0.2); border-color: rgba(93,173,226,0.35); }
+
+  .theme-lime .subject-header { border-color: #a9cce3; }
+  .theme-lime .subject-icon { background: rgba(169,204,227,0.15); color: #a9cce3; }
+  .theme-lime .subject-header h2 { color: #aed6f1; }
+  .theme-lime .card-title { color: #aed6f1; }
+  .theme-lime .step::before { background: #2e86c1; color: white; }
+  .theme-lime .alert-box { background: rgba(169,204,227,0.1); border-color: rgba(169,204,227,0.3); }
+
+  .theme-fire .subject-header { border-color: #e74c3c; }
+  .theme-fire .subject-icon { background: rgba(231,76,60,0.2); color: #e74c3c; }
+  .theme-fire .subject-header h2 { color: #ec7063; }
+  .theme-fire .card-title { color: #ec7063; }
+  .theme-fire .step::before { background: #c0392b; color: white; }
+  .theme-fire .alert-box { background: rgba(231,76,60,0.12); border-color: rgba(231,76,60,0.35); }
+
+  /* TAG */
+  .tag {
+    display: inline-block;
+    padding: 2px 10px; border-radius: 50px;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  /* SVG ILLUSTRATIONS */
+  .illustration { text-align: center; padding: 20px 0; font-size: 80px; line-height: 1; }
+
+  /* FOOTER */
+  footer {
+    text-align: center; padding: 40px 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    color: var(--muted); font-size: 13px;
+  }
+
+  @media (max-width: 600px) {
+    .hero-stats { gap: 24px; }
+    .stat-num { font-size: 28px; }
+    .cards-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">📖 Material de Estudo</div>
+  <h1>Resumão<br><span>Provão CBMPA</span></h1>
+  <p>Caderno Vidas Alheias — Tudo que você precisa saber para arrasar no provão</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">10</div><div class="stat-label">Matérias</div></div>
+    <div class="stat"><div class="stat-num">21</div><div class="stat-label">Capítulos</div></div>
+    <div class="stat"><div class="stat-num">488</div><div class="stat-label">Páginas</div></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-wrap">
+  <a class="nav-pill" href="#im">🎖 Instr. Militar</a>
+  <a class="nav-pill" href="#dc">🏘 Defesa Civil</a>
+  <a class="nav-pill" href="#aph">🚑 APH</a>
+  <a class="nav-pill" href="#st">⛰ Salv. Terrestre</a>
+  <a class="nav-pill" href="#op">☣ OP Perigosos</a>
+  <a class="nav-pill" href="#aq">🌊 Aquático</a>
+  <a class="nav-pill" href="#sa">🧗 Salv. Altura</a>
+  <a class="nav-pill" href="#sv">🚗 Salv. Veicular</a>
+  <a class="nav-pill" href="#tmi">🔥 TMI</a>
+  <a class="nav-pill" href="#if">🌲 Inc. Florestal</a>
+</div>
+
+<div class="container">
+  <p class="section-title">Clique em uma matéria para navegar diretamente</p>
+
+  <!-- ======================== 1. INSTRUÇÃO MILITAR ======================== -->
+  <div class="subject-section theme-red" id="im">
+    <div class="subject-header">
+      <div class="subject-icon">🎖</div>
+      <div>
+        <div class="cap">Capítulo 01 · Pág. 11</div>
+        <h2>Instrução Militar</h2>
+      </div>
+    </div>
+
+    <div class="illustration">🫡</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title theme-red" style="color:#e74c3c">Ordem Unida</div>
+        <ul>
+          <li>Conjunto de normas que regem os movimentos e atitudes militares em grupo</li>
+          <li><strong>Posição de sentido:</strong> calcanhares unidos, pés em 45°, braços junto ao corpo</li>
+          <li><strong>À vontade:</strong> pé esquerdo à largura dos ombros, mãos no dorso</li>
+          <li><strong>Descansar:</strong> pé esquerdo desloca 30cm, corpo ereto</li>
+          <li>Comandos: parte preparatória + executiva (ex.: "Sentido!" / "Meia volta — VOLVER!")</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#e74c3c">Hierarquia e Disciplina</div>
+        <ul>
+          <li>Pilares da instituição militar segundo o Estatuto</li>
+          <li><strong>Hierarquia:</strong> ordenação dos postos/graduações (superior → subordinado)</li>
+          <li><strong>Disciplina:</strong> observância rigorosa das leis e regulamentos</li>
+          <li>Praças: Soldado → Cabo → 3°/2°/1° Sargento → Subtenente</li>
+          <li>Oficiais: Aspirante → 2°/1° Tenente → Capitão → Majores → Coronel</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#e74c3c">Continência e Formaturas</div>
+        <ul>
+          <li>Continência: saudação militar obrigatória a superiores</li>
+          <li>Executa-se a 6 passos de distância (≈ 5m) em marcha</li>
+          <li>Formaturas: fila, coluna, linha, agrupamento</li>
+          <li>Guia sempre à frente ou à direita da tropa</li>
+          <li>Flanco direito tem precedência sobre o esquerdo</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-content"><strong>Posição de Sentido</strong><span>Calcanhares unidos, pés em 45°, joelhos estendidos, abdômen contraído, tórax elevado, cabeça erguida, olhar no horizonte.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-content"><strong>Meia Volta Volver</strong><span>Gira 180° sobre o calcanhar direito e ponta do pé esquerdo, completando o movimento em dois tempos.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-content"><strong>Marcha</strong><span>Passo normal = 75 cm, cadência 114 passos/min. Passo acelerado = 90 cm, 120 passos/min.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== 2. DEFESA CIVIL ======================== -->
+  <div class="subject-section theme-orange" id="dc">
+    <div class="subject-header">
+      <div class="subject-icon">🏘</div>
+      <div>
+        <div class="cap">Capítulo 21 · Pág. 665</div>
+        <h2>Defesa Civil</h2>
+      </div>
+    </div>
+
+    <div class="illustration">⛑️</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#e67e22">Conceito e Missão</div>
+        <ul>
+          <li>Conjunto de ações de prevenção, mitigação, preparação, resposta e recuperação</li>
+          <li>Objetivo: reduzir riscos de desastres e garantir proteção à população</li>
+          <li>SINPDEC: Sistema Nacional de Proteção e Defesa Civil</li>
+          <li>CENAD: Centro Nacional de Gerenciamento de Riscos e Desastres</li>
+          <li>Lei 12.608/2012 institui a Política Nacional de Proteção e Defesa Civil</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#e67e22">Classificação de Desastres</div>
+        <ul>
+          <li><strong>Naturais:</strong> geológicos, hidrológicos, meteorológicos, climatológicos, biológicos</li>
+          <li><strong>Humanos:</strong> tecnológicos, sociais, biológicos (antropogênicos)</li>
+          <li><strong>Mistos:</strong> interação de natureza + ação humana</li>
+          <li>Nível I – Desastre (menor); Nível II – Desastre médio</li>
+          <li>Nível III – Desastre grande; Nível IV – Desastre de grande porte</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#e67e22">Fases de Gerenciamento</div>
+        <ul>
+          <li>🔍 <strong>Prevenção:</strong> identificação e mapeamento de riscos</li>
+          <li>⚠️ <strong>Mitigação:</strong> ações para reduzir impacto</li>
+          <li>📋 <strong>Preparação:</strong> planejamento e capacitação</li>
+          <li>🚨 <strong>Resposta:</strong> atendimento imediato ao desastre</li>
+          <li>🔄 <strong>Recuperação:</strong> restabelecimento das condições normais</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <span class="icon">⚠️</span>
+      <div><strong>Decreto 10.593/2020</strong> — Regulamenta o SINPDEC e define as competências dos entes federados. Municípios são a primeira linha de resposta. Situação de Emergência (SE) e Estado de Calamidade Pública (ECP) são reconhecidos pelo poder executivo após declaração municipal.</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Sigla</th><th>Significado</th><th>Função</th></tr></thead>
+        <tbody>
+          <tr><td>COMDEC</td><td>Coordenadoria Municipal de Defesa Civil</td><td>Nível municipal</td></tr>
+          <tr><td>CORDEC</td><td>Coordenadoria Regional</td><td>Nível regional</td></tr>
+          <tr><td>CEDEC</td><td>Coordenadoria Estadual</td><td>Nível estadual</td></tr>
+          <tr><td>SEDEC</td><td>Secretaria Nacional</td><td>Nível federal</td></tr>
+          <tr><td>NUDEC</td><td>Núcleo Comunitário</td><td>Bairro/comunidade</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======================== 3. APH ======================== -->
+  <div class="subject-section theme-green" id="aph">
+    <div class="subject-header">
+      <div class="subject-icon">🚑</div>
+      <div>
+        <div class="cap">Capítulo 09 · Pág. 183</div>
+        <h2>Atendimento Pré-Hospitalar (APH)</h2>
+      </div>
+    </div>
+
+    <div class="illustration">❤️‍🔥</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#2ecc71">Avaliação da Cena e Vítima</div>
+        <ul>
+          <li><strong>BSI:</strong> Body Substance Isolation — EPI antes de qualquer atendimento</li>
+          <li>Segurança da cena → Número de vítimas → Mecanismo de lesão</li>
+          <li><strong>AVDI:</strong> Alerta, Voz, Dor, Inconsciente</li>
+          <li>Posição lateral de segurança para inconscientes respirando</li>
+          <li>Controle de hemorragia grave antes do ABCDE completo</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#2ecc71">ABCDE do Trauma</div>
+        <ul>
+          <li><strong>A</strong> — Airway: vias aéreas + controle cervical</li>
+          <li><strong>B</strong> — Breathing: ventilação e respiração</li>
+          <li><strong>C</strong> — Circulation: circulação + controle hemorragia</li>
+          <li><strong>D</strong> — Disability: estado neurológico (AVDI + pupilas)</li>
+          <li><strong>E</strong> — Exposure: exposição e controle de hipotermia</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#2ecc71">RCP – Ressuscitação Cardiopulmonar</div>
+        <ul>
+          <li>Sequência: C-A-B (compressões → via aérea → ventilação)</li>
+          <li>Adulto: 30 compressões : 2 ventilações</li>
+          <li>Profundidade: 5–6 cm; frequência 100–120/min</li>
+          <li>DEA assim que disponível — minimize interrupções</li>
+          <li>RCP pediátrica: 1 ou 2 socorristas (15:2 ou 30:2)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#2ecc71">Hemorragias e Choque</div>
+        <ul>
+          <li>Classes: I (&lt;15%), II (15–30%), III (30–40%), IV (&gt;40%) do volume sanguíneo</li>
+          <li>Controle: pressão direta → curativo compressivo → torniquete</li>
+          <li>Torniquete: 5–8 cm acima da ferida, registrar horário</li>
+          <li>Sinais de choque: taquicardia, hipotensão, pele fria e pálida</li>
+          <li>Posição de choque: elevar MMII 30 cm (se sem trauma)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#2ecc71">Imobilizações</div>
+        <ul>
+          <li>Colar cervical: medir e aplicar sem mover a cabeça</li>
+          <li>Prancha longa: imobiliza coluna vertebral inteira</li>
+          <li>Tirante de cabeça: após fixação no tronco e membros</li>
+          <li>Talas: fratura de extremidades (imobilizar articulação acima e abaixo)</li>
+          <li>SKED: maca flexível para locais de difícil acesso</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#2ecc71">Queimaduras</div>
+        <ul>
+          <li>1° grau: epiderme (eritema); 2° grau: flictenas; 3° grau: carbonização</li>
+          <li>Regra dos 9 (Wallace): cabeça 9%, cada MS 9%, tronco A/P 18% cada</li>
+          <li>Esfriar com água corrente fria por 10–20 min</li>
+          <li>Não retirar roupa colada, não estourar bolhas</li>
+          <li>Cobrir com curativo úmido e encaminhar ao hospital</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <span class="icon">🔴</span>
+      <div><strong>Triagem START:</strong> Vermelho (imediato) → Amarelo (espera) → Verde (ambulante) → Preto (óbito/expectante). Avalie: deambulação → respiração → perfusão → nível de consciência.</div>
+    </div>
+  </div>
+
+  <!-- ======================== 4. SALVAMENTO TERRESTRE ======================== -->
+  <div class="subject-section theme-yellow" id="st">
+    <div class="subject-header">
+      <div class="subject-icon">⛰</div>
+      <div>
+        <div class="cap">Capítulo 15 · Pág. 403</div>
+        <h2>T.M. Salvamento Terrestre</h2>
+      </div>
+    </div>
+
+    <div class="illustration">🏔️</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#f1c40f">Nós Fundamentais</div>
+        <ul>
+          <li><strong>Nó oito:</strong> ancoragem e encordoamento — mais usado</li>
+          <li><strong>Nó de guiador:</strong> regulável, travamento em carga</li>
+          <li><strong>Volta do fiel:</strong> fixação em suportes cilíndricos</li>
+          <li><strong>Nó borboleta:</strong> ponto intermediário em linha de vida</li>
+          <li><strong>Nó plano:</strong> união de cordas de mesmo diâmetro</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#f1c40f">Equipamentos de PI</div>
+        <ul>
+          <li>EPIs: capacete, luvas, óculos, botina com biqueira de aço</li>
+          <li>Cadeirinha (harness) tipo C – específica para salvamento</li>
+          <li>Mosquetões: oval, D-simétrico, com trava automática</li>
+          <li>Freios: oito, gri-gri, ID (auto-blocante)</li>
+          <li>Cordas estáticas: baixa elongação, para salvamento</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#f1c40f">Sistemas de Polias</div>
+        <ul>
+          <li>Sistema Z (3:1): duas polias móveis, vantagem mecânica triplicada</li>
+          <li>Sistema C (2:1): polia simples, carga dividida por 2</li>
+          <li>Sistema composto: combinação para cargas maiores (6:1, 9:1)</li>
+          <li>Tirador: prusik ou bloqueador como trava de progresso</li>
+          <li>Linha guia: orienta a maca em operações de içamento</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-content"><strong>Reconhecimento e Isolamento</strong><span>Isole a área, identifique riscos residuais, estime número de vítimas e defina ponto de ancoragem seguro.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-content"><strong>Montagem do Sistema de Ancoragem</strong><span>Use dois pontos independentes sempre que possível. Distribua a carga em ancoragem equalizadora (triângulo de força).</span></div>
+      </div>
+      <div class="step">
+        <div class="step-content"><strong>Acesso e Estabilização da Vítima</strong><span>Estabilize a vítima antes de movê-la. Aplique APH básico no local. Imobilize fraturas e coluna conforme necessário.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-content"><strong>Remoção e Içamento</strong><span>Use maca tipo Stokes. Mantenha linha guia. Comunique cada etapa entre equipes de topo e base.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== 5. OP PERIGOSOS ======================== -->
+  <div class="subject-section theme-purple" id="op">
+    <div class="subject-header">
+      <div class="subject-icon">☣</div>
+      <div>
+        <div class="cap">Capítulo 19 · Pág. 615</div>
+        <h2>Operações com Produtos Perigosos</h2>
+      </div>
+    </div>
+
+    <div class="illustration">🧪</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#9b59b6">Classes ONU de Risco</div>
+        <ul>
+          <li>Classe 1 – Explosivos</li>
+          <li>Classe 2 – Gases (2.1 inflamável, 2.2 não-inflamável, 2.3 tóxico)</li>
+          <li>Classe 3 – Líquidos inflamáveis</li>
+          <li>Classe 4 – Sólidos inflamáveis / auto-reativos / perofóricos</li>
+          <li>Classe 5 – Oxidantes e peróxidos orgânicos</li>
+          <li>Classe 6 – Tóxicos e infectantes</li>
+          <li>Classe 7 – Radioativos</li>
+          <li>Classe 8 – Corrosivos</li>
+          <li>Classe 9 – Perigosos diversos</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#9b59b6">Zonas de Trabalho (ERG)</div>
+        <ul>
+          <li>🔴 <strong>Zona Quente:</strong> área contaminada, só equipe com EPI nível A/B</li>
+          <li>🟡 <strong>Zona Morna:</strong> descontaminação e suporte imediato</li>
+          <li>🟢 <strong>Zona Fria:</strong> comando, apoio e retaguarda</li>
+          <li>Distância de isolamento inicial conforme ERG 2024</li>
+          <li>Vento: posicione-se a barlavento e em terreno elevado</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#9b59b6">Identificação do Produto</div>
+        <ul>
+          <li><strong>Painel de segurança:</strong> número de risco (2 dígitos) + número ONU (4 dígitos)</li>
+          <li><strong>Número de risco X33:</strong> X = reação violenta com água; 3 = líquido inflamável</li>
+          <li>Rótulo de risco: losango com cor e símbolo da classe</li>
+          <li>FISPQ: Ficha de Informações de Segurança do Produto Químico</li>
+          <li>CIQUIMAT / ABIQUIM: suporte técnico 24h (0800 118 270)</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#9b59b6">Níveis de EPI</div>
+        <ul>
+          <li><strong>Nível A:</strong> roupa encapsulada, SCBA — máxima proteção dérmica e respiratória</li>
+          <li><strong>Nível B:</strong> roupa splash, SCBA — máxima respiratória</li>
+          <li><strong>Nível C:</strong> roupa splash, respirador purificador de ar</li>
+          <li><strong>Nível D:</strong> uniforme padrão — sem contaminação conhecida</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <span class="icon">☢️</span>
+      <div><strong>NOTA QUENTE:</strong> O Guia ERG (Emergency Response Guidebook) é o principal guia de campo. Ao identificar o número ONU, consulte a tabela de isolamento e proteção. Nunca entre na zona quente sem confirmação do produto e EPI adequado.</div>
+    </div>
+  </div>
+
+  <!-- ======================== 6. AQUÁTICO ======================== -->
+  <div class="subject-section theme-blue" id="aq">
+    <div class="subject-header">
+      <div class="subject-icon">🌊</div>
+      <div>
+        <div class="cap">Capítulo 17 · Pág. 539</div>
+        <h2>Salvamento Aquático</h2>
+      </div>
+    </div>
+
+    <div class="illustration">🏊</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#3498db">Princípios Básicos</div>
+        <ul>
+          <li><strong>ARRE:</strong> Alcançar → Rebocar → Remar → Entrar (ordem de risco crescente)</li>
+          <li>Nunca entre na água sem EPI e sem avaliação da cena</li>
+          <li>Vítima em pânico pode afundar o socorrista — use flutuadores</li>
+          <li>Correntes de retorno (rip currents): nade em paralelo à praia para sair</li>
+          <li>Comunicação com equipe de apoio é obrigatória antes de entrar</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#3498db">Equipamentos</div>
+        <ul>
+          <li>Flutuador de resgate (torpedo / prancha salva-vidas)</li>
+          <li>Corda de arremesso: mínimo 20m, arremesse à frente da vítima</li>
+          <li>Colete salva-vidas: homologado INMETRO, 50N / 100N / 150N</li>
+          <li>Roupa de neoprene: 3–5mm para temperatura &lt;24°C</li>
+          <li>Máscara e nadadeiras para mergulho raso</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#3498db">Técnicas de Reboque</div>
+        <ul>
+          <li><strong>Reboque pelo queixo:</strong> vítima inconsciente, mantém vias aéreas livres</li>
+          <li><strong>Reboque pelo axilar:</strong> vítima semi-consciente ou em pânico</li>
+          <li><strong>Reboque com flutuador:</strong> mais seguro, evita contato direto</li>
+          <li>Velocidade: nado costas ou lateral, use nadadeiras se disponível</li>
+          <li>Atenção ao traumatismo de coluna em mergulho ou queda</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#3498db">RCP na Água / Afogamento</div>
+        <ul>
+          <li>Grau 1–6 (Szpilman): G1 tosse, G6 óbito aparente</li>
+          <li>Iniciar ventilação na água se possível (com flutuador)</li>
+          <li>Em terra: sequência C-A-B padrão ACLS</li>
+          <li>Hipotermia pós-afogamento: aqueça gradualmente</li>
+          <li>"Não está morto enquanto não estiver quente e morto" (regra do afogamento)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Grau</th><th>Clínica</th><th>Conduta</th></tr></thead>
+        <tbody>
+          <tr><td>G1</td><td>Tosse, sem espuma</td><td>Observar 6h, alta</td></tr>
+          <tr><td>G2</td><td>Pouca espuma, ausculta normal</td><td>O₂, transporte</td></tr>
+          <tr><td>G3</td><td>Edema agudo leve, consciente</td><td>O₂, UTI</td></tr>
+          <tr><td>G4</td><td>Edema agudo grave, inconsciente</td><td>IOT, UTI</td></tr>
+          <tr><td>G5</td><td>Parada respiratória</td><td>RCP imediata</td></tr>
+          <tr><td>G6</td><td>PCR</td><td>RCP + DEA</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======================== 7. SALVAMENTO EM ALTURA ======================== -->
+  <div class="subject-section theme-teal" id="sa">
+    <div class="subject-header">
+      <div class="subject-icon">🧗</div>
+      <div>
+        <div class="cap">Capítulo 18 · Pág. 579</div>
+        <h2>Salvamento em Altura</h2>
+      </div>
+    </div>
+
+    <div class="illustration">🏗️</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#1abc9c">Fundamentos</div>
+        <ul>
+          <li>Trabalho em altura: qualquer atividade ≥ 2m acima do nível inferior</li>
+          <li>NR-35 (Trabalho em Altura): regulamenta EPI e procedimentos</li>
+          <li>Sistema de proteção coletiva tem precedência sobre individual</li>
+          <li>Ancoragem mínima: suporte fator de queda 2 (≥ 15 kN)</li>
+          <li>Inspeção do equipamento antes de cada uso — RETIRE se danificado</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#1abc9c">Técnicas de Acesso</div>
+        <ul>
+          <li><strong>Rapel:</strong> descida controlada com freio (oito ou descensor ID)</li>
+          <li><strong>Ascensão:</strong> uso de bloqueadores (jumar/croll) em corda estática</li>
+          <li><strong>Travessia:</strong> linha horizontal (tirolesa/highline) para transposição</li>
+          <li><strong>Fator de queda:</strong> distância da queda / comprimento da corda</li>
+          <li>Sempre manter dois pontos de fixação independentes</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#1abc9c">Resgate de Vítima Suspensa</div>
+        <ul>
+          <li>Síndrome do arnês: circulação comprometida — remover rapidamente</li>
+          <li>Acesso pela parte superior (rapel em tandem) quando possível</li>
+          <li>Sistemas de resgate com carga viva: controle de descida lenta</li>
+          <li>Maca Stokes em posição vertical para espaços confinados</li>
+          <li>Comunicação constante com a vítima durante toda a operação</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <span class="icon">🔺</span>
+      <div><strong>Síndrome do Arnês (Suspension Trauma):</strong> Vítima suspensa imóvel pode sofrer colapso circulatório em minutos. Ao resgatar, NÃO deite imediatamente — mantenha semi-sentada 30 min. Chame SAMU mesmo se aparentemente bem.</div>
+    </div>
+  </div>
+
+  <!-- ======================== 8. SALVAMENTO VEICULAR ======================== -->
+  <div class="subject-section theme-darkblue" id="sv">
+    <div class="subject-header">
+      <div class="subject-icon">🚗</div>
+      <div>
+        <div class="cap">Capítulo 16 · Pág. 511</div>
+        <h2>Salvamento Veicular</h2>
+      </div>
+    </div>
+
+    <div class="illustration">🚒</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#5dade2">Fases da Operação</div>
+        <ul>
+          <li>1. Chegada e Avaliação (tamanho-up)</li>
+          <li>2. Estabilização do veículo (cunhas, escoras, cintas)</li>
+          <li>3. Gerenciamento de energia (bateria, airbags, híbridos)</li>
+          <li>4. Acesso à vítima (janela, teto, porta)</li>
+          <li>5. Desengaçamento (expansão do habitáculo)</li>
+          <li>6. Remoção e transferência da vítima</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#5dade2">Ferramentas Hidráulicas</div>
+        <ul>
+          <li><strong>Abre-porta (alicate):</strong> expansão lateral — abre até 90 cm</li>
+          <li><strong>Cortador:</strong> corta colunas A, B, C e pedais</li>
+          <li><strong>Cilindro expansor:</strong> levanta painel (dash roll)</li>
+          <li><strong>Ram:</strong> empurra bancos, painéis e colunas</li>
+          <li>Pressão de operação: 700 bar em média</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#5dade2">Veículos Especiais</div>
+        <ul>
+          <li><strong>Elétricos/Híbridos:</strong> corte do cabo negativo PRIMEIRO; cuidado com 400V+</li>
+          <li><strong>Airbags não detonados:</strong> zona de exclusão 30cm lateral / 45cm frontal</li>
+          <li><strong>Caminhão bitrem:</strong> estabilizar unidades separadamente</li>
+          <li><strong>Combustível GNV:</strong> ventilar área, afastar ignição</li>
+          <li>Veículos tombados: estabilizar antes de qualquer acesso</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-content"><strong>Estabilização do Veículo</strong><span>Use cunhas nas rodas e escoras rígidas nos pontos de apoio (soleira, longarina). Teste empurrando o veículo levemente antes de entrar.</span></div>
+      </div>
+      <div class="step">
+        <div class="step-content"><strong>Gerenciamento Elétrico</strong><span>Desconecte a bateria negativa. Em veículos elétricos, use o manual de emergência do fabricante (Emergency Response Guide específico).</span></div>
+      </div>
+      <div class="step">
+        <div class="step-content"><strong>Criação de Abertura</strong><span>Prefira remover porta completa a abri-la parcialmente. Corte coluna B para abrir habitáculo. Cubra bordas cortadas com proteção de borda.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================== 9. TMI ======================== -->
+  <div class="subject-section theme-fire" id="tmi">
+    <div class="subject-header">
+      <div class="subject-icon">🔥</div>
+      <div>
+        <div class="cap">Capítulo 13 · Pág. 349</div>
+        <h2>Técnicas e Manobras de Incêndio (TMI)</h2>
+      </div>
+    </div>
+
+    <div class="illustration">🧯</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#ec7063">Triângulo e Tetraedro do Fogo</div>
+        <ul>
+          <li><strong>Triângulo:</strong> Combustível + Comburente (O₂) + Calor</li>
+          <li><strong>Tetraedro:</strong> + Reação em cadeia (4° elemento)</li>
+          <li>Extinção por: resfriamento, abafamento, isolamento ou quebra da cadeia</li>
+          <li>Ponto de fulgor: menor temp. que produz vapores inflamáveis</li>
+          <li>Ponto de combustão: flameja por ≥ 5 segundos; ponto de ignição: queima espontânea</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#ec7063">Comportamento do Fogo</div>
+        <ul>
+          <li><strong>Flashover:</strong> ignição simultânea de todos os materiais do compartimento (~600°C)</li>
+          <li><strong>Backdraft:</strong> explosão por entrada de O₂ em compartimento fechado superaquecido</li>
+          <li><strong>Rollover:</strong> ignição dos gases quentes que rolam pelo teto</li>
+          <li><strong>Fire gas ignition:</strong> ignição de gases a distância da frente de chamas</li>
+          <li>Sinais de backdraft: fumaça pulsante, janelas pretas, calor sem chamas visíveis</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#ec7063">Mangueiras e Escoamentos</div>
+        <ul>
+          <li>Linha de ataque (1½"): combate direto ao fogo</li>
+          <li>Linha de proteção (2½"): protege a equipe e estrutura</li>
+          <li><strong>Escoamento reto:</strong> maior alcance, penetração — 600 L/min</li>
+          <li><strong>Escoamento neblinado:</strong> maior superfície de resfriamento, proteção radiante</li>
+          <li>Jato em ângulo de 30°: resfria teto sem derrubar camada de fumaça</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#ec7063">Agentes Extintores</div>
+        <ul>
+          <li>Água: classe A (sólidos); resfriamento + abafamento</li>
+          <li>Espuma: A e B; abafamento de líquidos inflamáveis</li>
+          <li>Pó químico seco: B e C; quebra reação em cadeia</li>
+          <li>CO₂: B e C; abafamento — não use em espaços confinados</li>
+          <li>PQS ABC: classes A, B e C</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Classe</th><th>Tipo de Fogo</th><th>Agente indicado</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag" style="background:#e74c3c">A</span></td><td>Sólidos combustíveis (papel, madeira, tecido)</td><td>Água, PQS-ABC, espuma</td></tr>
+          <tr><td><span class="tag" style="background:#e67e22">B</span></td><td>Líquidos e gases inflamáveis</td><td>Espuma, PQS, CO₂</td></tr>
+          <tr><td><span class="tag" style="background:#f1c40f; color:#000">C</span></td><td>Equipamentos elétricos energizados</td><td>CO₂, PQS (não água)</td></tr>
+          <tr><td><span class="tag" style="background:#8e44ad">D</span></td><td>Metais combustíveis (magnésio, lítio)</td><td>Pó especial D</td></tr>
+          <tr><td><span class="tag" style="background:#27ae60">K</span></td><td>Óleos e gorduras de cozinha</td><td>Agente úmido específico</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ======================== 10. INCÊNDIO FLORESTAL ======================== -->
+  <div class="subject-section theme-lime" id="if">
+    <div class="subject-header">
+      <div class="subject-icon">🌲</div>
+      <div>
+        <div class="cap">Capítulo 14 · Pág. 381</div>
+        <h2>Incêndio Florestal</h2>
+      </div>
+    </div>
+
+    <div class="illustration">🌳🔥🌳</div>
+
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-title" style="color:#aed6f1">Componentes do Incêndio Florestal</div>
+        <ul>
+          <li><strong>Combustível:</strong> material vegetal morto e vivo (folhiço, galhos, gramíneas)</li>
+          <li><strong>Topografia:</strong> inclinação aumenta velocidade (+30% a cada 10° de inclinação)</li>
+          <li><strong>Clima:</strong> temperatura, umidade relativa, vento — fator mais dinâmico</li>
+          <li>Triângulo do fogo florestal: combustível + topografia + clima</li>
+          <li>FWI: Fire Weather Index — sistema de avaliação de risco</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#aed6f1">Partes do Incêndio</div>
+        <ul>
+          <li>🔺 <strong>Cabeça:</strong> frente mais ativa, maior velocidade de propagação</li>
+          <li>↔️ <strong>Flancos:</strong> laterais — esquerdo e direito</li>
+          <li>🔻 <strong>Cauda:</strong> parte mais lenta, contra o vento ou morro abaixo</li>
+          <li>🌀 <strong>Corpo:</strong> área interna em combustão</li>
+          <li>Dedo: língua de fogo que avança na vegetação mais seca</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#aed6f1">Métodos de Combate</div>
+        <ul>
+          <li><strong>Ataque direto:</strong> ação sobre as chamas com água/abafador</li>
+          <li><strong>Ataque indireto:</strong> aceiro distante da frente de fogo</li>
+          <li><strong>Ataque paralelo:</strong> aceiro próximo à borda, sem tocar a chama</li>
+          <li>Contrafogo: queima controlada à frente do incêndio (uso restrito)</li>
+          <li>Aceiro: faixa de terra limpa que bloqueia a propagação</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:#aed6f1">Segurança do Combatente</div>
+        <ul>
+          <li>10 regras padrão de segurança (Standard Fire Orders – IBAMA)</li>
+          <li>18 situações de risco (Watch Out Situations)</li>
+          <li>LACES: Lookouts (vigias), Awareness (ciência), Communication, Escape routes, Safety zones</li>
+          <li>Zona de segurança: área já queimada, não vegetada ou terreno mineral</li>
+          <li>Nunca fuja morro acima de um incêndio em avanço</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <span class="icon">🌡️</span>
+      <div><strong>Comportamento de risco:</strong> umidade relativa abaixo de 30% + ventos acima de 30 km/h + temperatura acima de 35°C = risco extremo de ignição e propagação explosiva. Reavalie continuamente e mantenha rotas de fuga identificadas.</div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>📚 Material de estudo – CBMPA 2025 · Caderno Vidas Alheias</p>
+  <p style="margin-top:8px">Gerado com base no sumário oficial · Estude com dedicação 🔥</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulado Provão Bombeiros – CBMPA</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0d0d1a;
+  color: #ecf0f1;
+  min-height: 100vh;
+}
+header {
+  background: linear-gradient(135deg, #c0392b, #922b21);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+header .hd { flex: 1; }
+header h1 { font-size: 17px; font-weight: 900; }
+header p  { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+.scoreboard { display: flex; gap: 10px; flex-shrink: 0; }
+.score-item {
+  text-align: center;
+  background: rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 7px 12px;
+  min-width: 50px;
+}
+.score-item .num { font-size: 20px; font-weight: 900; line-height: 1; }
+.score-item .lbl { font-size: 10px; opacity: 0.8; margin-top: 2px; }
+.s-ok .num  { color: #2ecc71; }
+.s-err .num { color: #e74c3c; }
+.progress-bar  { height: 4px; background: rgba(255,255,255,0.1); }
+.progress-fill { height: 100%; background: linear-gradient(90deg,#e74c3c,#f39c12); transition: width .4s; width: 0; }
+
+/* ── Dificuldade badges ─────────────────────────────── */
+.diff-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.diff-facil    { background: rgba(46,204,113,.2);  color: #2ecc71;  border: 1px solid rgba(46,204,113,.35); }
+.diff-moderado { background: rgba(243,156,18,.2);  color: #f39c12;  border: 1px solid rgba(243,156,18,.35); }
+.diff-dificil  { background: rgba(231,76,60,.2);   color: #e74c3c;  border: 1px solid rgba(231,76,60,.35); }
+
+.subject-label {
+  display: inline-block;
+  background: rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #bdc3c7;
+  margin-bottom: 8px;
+  margin-left: 6px;
+}
+
+/* ── Container ──────────────────────────────────────── */
+.container { max-width: 720px; margin: 0 auto; padding: 24px 16px 120px; }
+
+/* ── Nav pílulas de matéria ─────────────────────────── */
+.nav-subjects { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.nav-pill {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.nav-pill.np-active { background: #c0392b; border-color: #c0392b; }
+.nav-pill.np-done   { border-color: #2ecc71; color: #2ecc71; }
+
+/* ── Legenda dificuldades ───────────────────────────── */
+.legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  align-items: center;
+}
+.legend span { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 700; }
+.leg-f { background: rgba(46,204,113,.15); color:#2ecc71; border:1px solid rgba(46,204,113,.3); }
+.leg-m { background: rgba(243,156,18,.15); color:#f39c12; border:1px solid rgba(243,156,18,.3); }
+.leg-d { background: rgba(231,76,60,.15);  color:#e74c3c; border:1px solid rgba(231,76,60,.3); }
+
+/* ── Card de questão ────────────────────────────────── */
+.question-card {
+  background: #16213e;
+  border-radius: 20px;
+  padding: 26px 22px;
+  margin-bottom: 24px;
+  display: none;
+  border: 2px solid transparent;
+}
+.question-card.active  { display: block; }
+.qc-facil    { border-color: rgba(46,204,113,.25); }
+.qc-moderado { border-color: rgba(243,156,18,.25); }
+.qc-dificil  { border-color: rgba(231,76,60,.25);  }
+
+.q-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; }
+.q-num {
+  background: #c0392b;
+  color: white;
+  border-radius: 50%;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 13px; flex-shrink: 0;
+}
+.q-text { font-size: 15px; font-weight: 600; line-height: 1.5; }
+
+.options { display: flex; flex-direction: column; gap: 9px; }
+.option {
+  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.09);
+  border-radius: 12px;
+  padding: 13px 16px;
+  cursor: pointer;
+  display: flex; align-items: flex-start; gap: 10px;
+  transition: all .2s;
+  font-size: 14px; line-height: 1.4;
+}
+.option:hover:not(.disabled) { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,.22); }
+.opt-letter { font-weight: 800; min-width: 18px; color: #f39c12; }
+.option.correct-ans { background: rgba(46,204,113,.15); border-color: #2ecc71; }
+.option.wrong-ans   { background: rgba(231,76,60,.15);  border-color: #e74c3c; }
+.option.disabled    { cursor: default; }
+
+.feedback {
+  margin-top: 14px; padding: 13px 16px;
+  border-radius: 12px; font-size: 13px; line-height: 1.5;
+  display: none;
+}
+.feedback.show { display: block; }
+.fb-ok  { background: rgba(46,204,113,.12); border: 1px solid rgba(46,204,113,.3); }
+.fb-err { background: rgba(231,76,60,.12);  border: 1px solid rgba(231,76,60,.3); }
+
+.btn-next {
+  display: none; margin-top: 16px; width: 100%;
+  padding: 15px; background: #c0392b; color: white;
+  border: none; border-radius: 12px; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: background .2s;
+}
+.btn-next:hover { background: #a93226; }
+.btn-next.show { display: block; }
+
+/* ── Resultado ──────────────────────────────────────── */
+#result-panel { display: none; }
+#result-panel.show { display: block; }
+
+.result-box {
+  background: #16213e; border-radius: 24px;
+  padding: 30px 26px; text-align: center;
+}
+.result-emoji { font-size: 64px; margin-bottom: 14px; }
+.result-score { font-size: 48px; font-weight: 900; }
+.result-pct { font-size: 18px; color: rgba(255,255,255,.6); margin-bottom: 20px; }
+.result-msg { font-size: 16px; font-weight: 700; padding: 14px 18px; background: rgba(255,255,255,.06); border-radius: 14px; margin-bottom: 28px; }
+
+/* Categoria cards */
+.diff-report { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 28px; }
+.diff-card {
+  flex: 1; min-width: 140px;
+  border-radius: 16px; padding: 18px 16px; text-align: center;
+}
+.dc-f { background: rgba(46,204,113,.12); border: 2px solid rgba(46,204,113,.3); }
+.dc-m { background: rgba(243,156,18,.12); border: 2px solid rgba(243,156,18,.3); }
+.dc-d { background: rgba(231,76,60,.12);  border: 2px solid rgba(231,76,60,.3);  }
+.dc-title { font-size: 13px; font-weight: 800; margin-bottom: 8px; }
+.dc-big   { font-size: 32px; font-weight: 900; line-height: 1; }
+.dc-sub   { font-size: 12px; opacity: .7; margin-top: 4px; }
+.dc-bar-wrap { background: rgba(255,255,255,.1); border-radius: 6px; height: 8px; margin-top: 10px; overflow: hidden; }
+.dc-bar      { height: 100%; border-radius: 6px; }
+.dcb-f { background: #2ecc71; }
+.dcb-m { background: #f39c12; }
+.dcb-d { background: #e74c3c; }
+
+/* Radar matérias */
+.section-title { font-size: 15px; font-weight: 800; margin-bottom: 14px; text-align: left; }
+.radar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+.radar-subject { min-width: 130px; text-align: left; font-weight: 600; }
+.radar-bar-wrap { flex: 1; background: rgba(255,255,255,.08); border-radius: 6px; height: 9px; overflow: hidden; }
+.radar-bar-fill { height: 100%; border-radius: 6px; }
+.rbf-dom { background: #2ecc71; }
+.rbf-att { background: #f39c12; }
+.rbf-fra { background: #e74c3c; }
+.radar-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.rt-dom { background: rgba(46,204,113,.2); color:#2ecc71; }
+.rt-att { background: rgba(243,156,18,.2); color:#f39c12; }
+.rt-fra { background: rgba(231,76,60,.2);  color:#e74c3c; }
+
+/* Fragilidades */
+.frag-section { margin-top: 24px; }
+.frag-item {
+  background: rgba(231,76,60,.1);
+  border: 1px solid rgba(231,76,60,.25);
+  border-radius: 12px; padding: 12px 15px; margin-bottom: 10px; font-size: 13px; line-height: 1.5;
+}
+.frag-diff { display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; }
+.fd-f { background: rgba(46,204,113,.2); color:#2ecc71; }
+.fd-m { background: rgba(243,156,18,.2); color:#f39c12; }
+.fd-d { background: rgba(231,76,60,.2);  color:#e74c3c; }
+
+.result-btns { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+.btn-retry, .btn-email {
+  flex: 1; padding: 15px; border: none; border-radius: 12px;
+  font-size: 14px; font-weight: 700; cursor: pointer; text-align: center;
+  text-decoration: none; display: block;
+}
+.btn-retry { background: #c0392b; color: white; }
+.btn-email { background: rgba(255,255,255,.08); color: white; border: 2px solid rgba(255,255,255,.2); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hd">
+    <h1>🔥 Provão Bombeiros CBMPA</h1>
+    <p id="q-counter">Questão 1 de 40</p>
+  </div>
+  <div class="scoreboard">
+    <div class="score-item s-ok" ><div class="num" id="sc-c">0</div><div class="lbl">Certas</div></div>
+    <div class="score-item s-err"><div class="num" id="sc-w">0</div><div class="lbl">Erradas</div></div>
+    <div class="score-item"      ><div class="num" id="sc-r">40</div><div class="lbl">Faltas</div></div>
+  </div>
+</header>
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<div class="container">
+  <div class="legend">
+    <strong style="font-size:12px">Dificuldade:</strong>
+    <span class="leg-f">🟢 Fácil (12)</span>
+    <span class="leg-m">🟡 Moderado (16)</span>
+    <span class="leg-d">🔴 Difícil (12)</span>
+  </div>
+  <div class="nav-subjects" id="nav-subjects"></div>
+  <div id="quiz-area"></div>
+  <div id="result-panel"></div>
+</div>
+
+<script>
+// d: 'F'=fácil | 'M'=moderado | 'D'=difícil
+// 12 fáceis (30%) | 16 moderados (40%) | 12 difíceis (30%)
+const questions = [
+  // ──────────── INSTRUÇÃO MILITAR ──────────────────────────
+  {s:'Instrução Militar', d:'F',
+   q:'Na posição de "Sentido", os calcanhares formam qual ângulo aproximado entre si?',
+   opts:['30°','45°','60°','90°','180°'], ans:2,
+   exp:'Na posição de sentido, os calcanhares estão unidos e os pés formam um ângulo de 60° entre si.'},
+  {s:'Instrução Militar', d:'M',
+   q:'Na "Meia Volta Volver", o giro de 180° é realizado sobre qual pé e em quantos tempos?',
+   opts:['Pé direito, 2 tempos','Pé esquerdo, 2 tempos','Ambos, 1 tempo','Pé direito, 3 tempos','Pé esquerdo, 3 tempos'], ans:1,
+   exp:'Meia Volta Volver: giro de 180° em 2 tempos, pivotando sobre o calcanhar esquerdo, depois juntando o pé direito.'},
+  {s:'Instrução Militar', d:'D',
+   q:'No desfile em passo ordinário, qual é a cadência (p/min) e o comprimento de passo padronizados?',
+   opts:['100 p/min – 65cm','108 p/min – 70cm','114 p/min – 75cm','120 p/min – 80cm','90 p/min – 60cm'], ans:2,
+   exp:'O passo ordinário tem 114 passos por minuto com comprimento de 75 cm, conforme regulamento de continências e honras militares.'},
+  {s:'Instrução Militar', d:'M',
+   q:'O comando "Volver" determina que o militar gire sobre o pé esquerdo:',
+   opts:['45°','90°','135°','180°','270°'], ans:1,
+   exp:'"Volver" (sem prefixo) é sinônimo de "Meia Volta", portanto giro de 180°. Já "Direita Volver" = 90° à direita.'},
+
+  // ──────────── DEFESA CIVIL ────────────────────────────────
+  {s:'Defesa Civil', d:'F',
+   q:'Qual órgão coordena o Sistema Nacional de Proteção e Defesa Civil (SINPDEC) em nível federal?',
+   opts:['Ministério da Saúde','IBGE','Ministério da Integração e Desenvolvimento Regional','Exército Brasileiro','Anatel'], ans:2,
+   exp:'O SINPDEC é coordenado pelo Ministério da Integração e Desenvolvimento Regional, com a Sedec como secretaria executiva.'},
+  {s:'Defesa Civil', d:'M',
+   q:'O COBRADE classifica os desastres em naturais e tecnológicos. Qual dos itens abaixo é considerado desastre TECNOLÓGICO?',
+   opts:['Ciclone extratropical','Seca prolongada','Vazamento de produtos perigosos','Erosão costeira','Vendaval'], ans:2,
+   exp:'Desastres tecnológicos incluem acidentes com produtos perigosos, nucleares, contaminação de águas e afins. Climáticos são naturais.'},
+  {s:'Defesa Civil', d:'D',
+   q:'A Instrução Normativa 01/2012 da SEDEC criou o COBRADE. Quantas classes e subgrupos compõem os desastres NATURAIS nesta classificação?',
+   opts:['3 grupos e 5 subgrupos','5 grupos e 14 subgrupos','2 grupos e 8 subgrupos','4 grupos e 12 subgrupos','5 grupos e 30 subgrupos'], ans:1,
+   exp:'O COBRADE organiza os desastres naturais em 5 grupos (geológico, hidrológico, meteorológico, climatológico, biológico) e 14 subgrupos.'},
+  {s:'Defesa Civil', d:'M',
+   q:'A "Situação de Emergência" difere do "Estado de Calamidade Pública" principalmente pelo:',
+   opts:['Número de vítimas fatais','Grau de comprometimento da capacidade de resposta do município','Tipo de agente causador','Área territorial atingida','Tempo de duração do evento'], ans:1,
+   exp:'Situação de Emergência: município afetado, com capacidade de resposta parcialmente comprometida. Calamidade Pública: comprometimento total, requerendo auxílio externo.'},
+
+  // ──────────── APH ─────────────────────────────────────────
+  {s:'APH', d:'F',
+   q:'Em vítima adulta, o socorrista verifica pulso carotídeo por no máximo:',
+   opts:['5 segundos','10 segundos','15 segundos','20 segundos','30 segundos'], ans:1,
+   exp:'A AHA recomenda checar o pulso carotídeo em adultos por no máximo 10 segundos. Se ausente ou duvidoso, iniciar RCP imediatamente.'},
+  {s:'APH', d:'M',
+   q:'Na RCP de adulto com 2 socorristas, a relação compressão:ventilação é:',
+   opts:['15:2','30:2','30:1','15:1','20:2'], ans:1,
+   exp:'Tanto para 1 quanto para 2 socorristas em adultos, a relação é 30:2, com frequência de 100-120 compressões/min.'},
+  {s:'APH', d:'M',
+   q:'O Suporte Básico de Vida (SBV) inclui a abertura de vias aéreas pelo método "inclinação da cabeça e elevação do mento". Em qual situação esse método é CONTRAINDICADO?',
+   opts:['Paciente obeso','Suspeita de trauma cervical','Criança menor de 1 ano','Paciente inconsciente','Parada respiratória'],  ans:1,
+   exp:'Em suspeita de trauma cervical, usar manobra de tração mandibular (jaw-thrust) para abrir vias aéreas sem mover a coluna.'},
+  {s:'APH', d:'D',
+   q:'No START Triage, após verificar respiração e perfusão, a avaliação de estado mental usa qual critério específico?',
+   opts:['Escala de Glasgow','Resposta a estímulo doloroso','Capacidade de obedecer comando simples','Abertura ocular espontânea','Verbalização coerente'], ans:2,
+   exp:'No START, o estado mental é avaliado pelo critério "obedece comando simples" (ex: "abra os olhos", "aperte minha mão"). Não conseguir = tag vermelha.'},
+
+  // ──────────── SALV. TERRESTRE ─────────────────────────────
+  {s:'Salv. Terrestre', d:'F',
+   q:'Em colapso de estrutura, antes de iniciar a busca física de vítimas, qual é a primeira ação da equipe?',
+   opts:['Usar detector de CO2','Ligar câmera térmica','Silêncio total + chamada de voz','Remover entulho da borda','Acionar drone'],  ans:2,
+   exp:'A chamada de voz com silêncio absoluto é sempre a primeira ação – detectar sinais de vida por voz, batidas ou sons, antes de qualquer equipamento.'},
+  {s:'Salv. Terrestre', d:'M',
+   q:'No resgate em espaço confinado, a percentagem de O₂ ideal na atmosfera para entrada segura é:',
+   opts:['Acima de 14%','Acima de 16%','Entre 19,5% e 23%','Acima de 25%','Exatamente 21%'], ans:2,
+   exp:'Atmosfera segura para espaço confinado: O₂ entre 19,5% e 23%. Abaixo de 19,5% = atmosfera deficiente; acima de 23% = risco de incêndio.'},
+  {s:'Salv. Terrestre', d:'D',
+   q:'Na técnica de "escoramento rápido" em colapso com vítima presa, qual madeiramento é montado primeiro?',
+   opts:['Travessas diagonais','Escoras horizontais de teto','Cunhas de ajuste','Soleiras (base)','Montantes verticais'], ans:3,
+   exp:'O escoramento seguro começa pelas soleiras (base horizontal), depois os montantes verticais, depois os suportes horizontais e por fim as cunhas de ajuste.'},
+  {s:'Salv. Terrestre', d:'M',
+   q:'O KED (Kendrick Extrication Device) imobiliza principalmente:',
+   opts:['Coluna vertebral cervical e torácica de vítima sentada','Pelve e membros inferiores','Costelas em tórax instável','Coluna lombar em vítima em decúbito','Ombros em luxação bilateral'], ans:0,
+   exp:'O KED imobiliza coluna cervical e torácica de vítimas sentadas (ex: em veículos), sendo aplicado antes da extração.'},
+
+  // ──────────── OP PERIGOSOS ────────────────────────────────
+  {s:'OP Perigosos', d:'F',
+   q:'O número de risco "33" no painel de segurança de veículo de transporte de produtos perigosos indica:',
+   opts:['Gás inflamável','Líquido muito inflamável','Sólido inflamável','Substância comburente','Corrosivo'], ans:1,
+   exp:'O número de risco 33 = líquido muito inflamável (ponto de fulgor < 23°C). Exemplos: gasolina (1203), etanol (1170).'},
+  {s:'OP Perigosos', d:'M',
+   q:'No NFPA 704, o quadrante AMARELO representa:',
+   opts:['Saúde','Inflamabilidade','Instabilidade/Reatividade','Perigo especial','Radioatividade'], ans:2,
+   exp:'NFPA 704: Azul = Saúde, Vermelho = Inflamabilidade, Amarelo = Instabilidade/Reatividade, Branco = Perigos especiais.'},
+  {s:'OP Perigosos', d:'D',
+   q:'O EPI Nível B (vestimenta totalmente encapsulada sem pressão positiva) é indicado quando:',
+   opts:['Não há risco de contaminação da pele','O nível de oxigênio está adequado mas há vapores presentes','A substância exige proteção máxima de pele com SCBA externo','Há apenas respingos de líquidos sem vapores','O agente é exclusivamente biológico'], ans:2,
+   exp:'Nível B: proteção total respiratória (SCBA externo), mas a proteção de pele é menor que nível A. Usado quando vapores exigem proteção respiratória máxima mas o perigo cutâneo é menor.'},
+  {s:'OP Perigosos', d:'M',
+   q:'O ONU 1017 identifica qual produto de uso crítico em emergências químicas?',
+   opts:['Amônia','Cloro','Ácido sulfúrico','Formol','GLP'], ans:1,
+   exp:'ONU 1017 = Cloro. Gás tóxico e oxidante, muito perigoso em vazamentos industriais e de tratamento de água.'},
+
+  // ──────────── AQUÁTICO ────────────────────────────────────
+  {s:'Aquático', d:'F',
+   q:'O protocolo de salvamento aquático prioriza as ações na ordem:',
+   opts:['Entrar – Nadar – Rebocar','Alcançar – Atirar – Rebocar – Entrar','Nadar – Rebocar – Sinalizar','Sinalizar – Entrar – Rebocar','Alcançar – Entrar – Nadar'], ans:1,
+   exp:'Protocolo: 1º Alcançar (extensão de objeto), 2º Atirar (corda/boia), 3º Rebocar (embarcação), 4º Entrar (nado, último recurso).'},
+  {s:'Aquático', d:'M',
+   q:'Vítima de afogamento Grau 4 segundo Szpilman apresenta:',
+   opts:['Tosse leve sem espuma','Espuma branca sem edema agudo','Edema agudo de pulmão com espuma rósea, consciente','Inconsciente com pulso, parada respiratória','PCR'], ans:2,
+   exp:'Grau 4 de Szpilman: consciente, edema agudo de pulmão com espuma rósea. Mortalidade ~22%. Requer O₂ e suporte avançado.'},
+  {s:'Aquático', d:'D',
+   q:'Na hipotermia grave (< 30°C de temperatura central), o tratamento no pré-hospitalar deve priorizar:',
+   opts:['RCP ininterrupta até o hospital, sem desfibrilação','Aquecimento ativo externo imediato com mantas elétricas','Aquecimento passivo, manipulação mínima e desfibrilação apenas se FV/TV',
+         'Acesso venoso e infusão de SF 0,9% gelado','Intubação orotraqueal imediata'], ans:2,
+   exp:'Em hipotermia grave: aquecimento passivo, manipulação mínima (risco de FV), e desfibrilação só se FV/TV – pois o coração hipotérmico pode não responder.'},
+  {s:'Aquático', d:'M',
+   q:'Em resgate com vítima em pânico, o bombeiro nadador se aproxima pela retaguarda para evitar:',
+   opts:['Correntes submarinas','O reflexo de afogamento da vítima (abraço de pânico)','Ondas de proa','Contaminação da água','Visibilidade reduzida'], ans:1,
+   exp:'A vítima em pânico pode empurrar o socorrista para baixo ("abraço de pânico"). A abordagem pela retaguarda minimiza esse risco.'},
+
+  // ──────────── SALV. EM ALTURA ─────────────────────────────
+  {s:'Salv. em Altura', d:'F',
+   q:'A NR-35 define trabalho em altura como atividade acima de:',
+   opts:['1,0 m','1,5 m','2,0 m','2,5 m','3,0 m'], ans:2,
+   exp:'NR-35: "trabalho em altura toda atividade executada acima de 2,0 m do nível inferior onde haja risco de queda."'},
+  {s:'Salv. em Altura', d:'M',
+   q:'O nó "oito duplo" é utilizado principalmente para:',
+   opts:['Unir duas cordas','Laço fixo na ponta da corda','Reduzir atrito em polias','Nó de segurança em prussik','Fixar corda em colunas'], ans:1,
+   exp:'Oito duplo (figura-oito repassado): cria laço fixo resistente e visualmente verificável na extremidade da corda, conectando-a ao arnês ou ancoragem.'},
+  {s:'Salv. em Altura', d:'D',
+   q:'Em sistema de vantagem mecânica 3:1 para resgate em altura, se a carga é de 150 kg, a força a aplicar na corda é aproximadamente:',
+   opts:['150 kg','100 kg','75 kg','50 kg','30 kg'], ans:3,
+   exp:'Vantagem mecânica 3:1 = força aplicada é 1/3 da carga: 150 ÷ 3 = 50 kg (desconsiderando atrito). Polia simples = 2:1; polias compostas aumentam a vantagem.'},
+  {s:'Salv. em Altura', d:'M',
+   q:'O dispositivo "Gri-gri" (Petzl) é classificado como:',
+   opts:['Polia de redirecionamento','Descensor com trava assistida','Ascensor manual','Mosquetão de segurança','Dispositivo de freio passivo'], ans:1,
+   exp:'Gri-gri é um descensor com trava assistida (cam), que freia automaticamente em caso de queda ou soltura da corda pelo socorrista.'},
+
+  // ──────────── SALV. VEICULAR ──────────────────────────────
+  {s:'Salv. Veicular', d:'F',
+   q:'A primeira ação no atendimento a acidente veicular é:',
+   opts:['Abrir a porta do veículo','Estabilizar o veículo','Extrcar a vítima','Avaliar respiração','Cortar airbag'], ans:1,
+   exp:'Estabilizar o veículo (calços, cunhas, escoras) é sempre a primeira etapa – impede movimentos durante todo o resgate.'},
+  {s:'Salv. Veicular', d:'M',
+   q:'Os cabos de alta tensão em veículos elétricos e híbridos são identificados pela cor:',
+   opts:['Azul','Vermelho','Preto','Laranja','Amarelo'], ans:3,
+   exp:'Padrão SAE J1127: cabos de alta tensão em VE/PHEV são laranja. Isso permite identificação rápida pelo socorrista.'},
+  {s:'Salv. Veicular', d:'D',
+   q:'A técnica de "roof flap" (rebatimento do teto) é preferida ao "roof removal" (retirada total) quando:',
+   opts:['Há múltiplas vítimas','Há risco de incêndio','O veículo está sobre o teto (capotado) e a vítima precisa de acesso rápido lateral',
+         'O veículo é elétrico','Os airbags não dispararam'], ans:2,
+   exp:'Roof flap é usado em veículos capotados: rebate o teto como uma "aba" lateralmente, criando acesso sem remoção total, preservando estabilidade da estrutura.'},
+  {s:'Salv. Veicular', d:'M',
+   q:'Na extricação de vítima com suspeita de coluna, o passo correto ANTES de usar o KED é:',
+   opts:['Aplicar torniquete','Cortar o cinto de segurança','Aplicar colar cervical','Desfibrilar se em PCR','Verificar pressão arterial'], ans:2,
+   exp:'A sequência é: 1) colar cervical; 2) KED; 3) prancha rígida. O colar cervical é aplicado antes do colete de extricação.'},
+
+  // ──────────── TMI ─────────────────────────────────────────
+  {s:'TMI', d:'F',
+   q:'O agente extintor indicado para incêndio em equipamentos elétricos energizados é:',
+   opts:['Água','CO₂','Espuma mecânica','Pó ABC','Areia'], ans:1,
+   exp:'CO₂ não conduz eletricidade e não deixa resíduo. É o mais indicado para classes B e C (líquidos inflamáveis e elétrico).'},
+  {s:'TMI', d:'M',
+   q:'O fenômeno "Flashover" ocorre aproximadamente a qual temperatura de gases e superfícies no ambiente?',
+   opts:['200–300°C','300–400°C','500–600°C','700–800°C','Acima de 900°C'], ans:2,
+   exp:'Flashover ocorre quando gases e superfícies atingem ~500-600°C, levando à combustão generalizada simultânea de todos os materiais do ambiente.'},
+  {s:'TMI', d:'D',
+   q:'O "Backdraft" (explosão de retorno) ocorre quando:',
+   opts:['O incêndio esgota o combustível e a temperatura cai','A temperatura supera o ponto de autoignição sem combustível suficiente',
+         'O ambiente deficiente em O₂ recebe aporte súbito de oxigênio','A fumaça se inflama na interface fria/quente','O CO₂ dos extintores reage com o combustível'], ans:2,
+   exp:'Backdraft: ambiente superaquecido e com deficiência de O₂ recebe entrada de ar (abertura de porta/janela), causando ignição explosiva dos gases acumulados.'},
+  {s:'TMI', d:'M',
+   q:'A pressão de trabalho recomendada para a linha de ataque no combate a incêndio estrutural é em torno de:',
+   opts:['2 bar','4 bar','7 bar','12 bar','15 bar'], ans:2,
+   exp:'A pressão de trabalho para linha de ataque (mangueira + esguicho) é aproximadamente 7 bar, garantindo alcance e vazão para combate efetivo.'},
+
+  // ──────────── INC. FLORESTAL ──────────────────────────────
+  {s:'Inc. Florestal', d:'F',
+   q:'O método de combate direto a incêndio florestal consiste em:',
+   opts:['Criar aceiros longe do fogo','Usar aeronaves de retardante','Atuar diretamente na borda das chamas com ferramentas manuais','Realizar contrafogo preventivo','Irrigar a área com canhões'],  ans:2,
+   exp:'Combate direto: equipes trabalham na borda do fogo, usando ferramentas manuais (abafadores, enxadas) e água para sufocar/extinguir diretamente as chamas.'},
+  {s:'Inc. Florestal', d:'M',
+   q:'O "Triângulo do Fogo Florestal" é composto por:',
+   opts:['Combustível – Calor – Oxigênio','Combustível – Topografia – Clima',
+         'Vento – Umidade – Temperatura','Declividade – Vento – Combustível','Ignição – Propagação – Extinção'], ans:1,
+   exp:'No contexto florestal, o triângulo do fogo adapta-se para: Combustível (tipo e quantidade), Topografia (declividade/relevo) e Clima (vento, umidade, temperatura).'},
+  {s:'Inc. Florestal', d:'D',
+   q:'Os "10 pontos de ordem" do protocolo NWCG para segurança em incêndio florestal incluem como PRIMEIRO ponto:',
+   opts:['Conhecer o clima','Manter comunicações','Manter-se informado sobre tempo, terreno e combustível e agir com base nessas informações',
+         'Dar ordens só por escrito','Nunca deixar um fogo sem vigilância'], ans:2,
+   exp:'O 1º ponto dos "10 Standard Fire Orders" do NWCG é: "Keep informed on fire weather conditions and forecasts" – base de toda decisão segura.'},
+  {s:'Inc. Florestal', d:'M',
+   q:'Um incêndio florestal avança mais rapidamente em qual condição topográfica?',
+   opts:['Terreno plano com vento contrário','Encosta descendente com vento favorável',
+         'Encosta ascendente com vento favorável','Fundo de vale sem vento','Terreno plano sem vento'], ans:2,
+   exp:'Encosta ascendente + vento favorável (subindo) é a condição de maior propagação: pré-aquecimento dos combustíveis acima e chaminé de vento aceleram o fogo.'}
+];
+
+// ──────────────────────────────────────────────────────────────
+const LETTERS = ['A','B','C','D','E'];
+const DIFF_INFO = {
+  F: {label:'🟢 Fácil',    cls:'diff-facil',    qcls:'qc-facil',    fdcls:'fd-f', count: 0},
+  M: {label:'🟡 Moderado', cls:'diff-moderado', qcls:'qc-moderado', fdcls:'fd-m', count: 0},
+  D: {label:'🔴 Difícil',  cls:'diff-dificil',  qcls:'qc-dificil',  fdcls:'fd-d', count: 0}
+};
+
+let current   = 0;
+let correct   = 0;
+let wrong     = 0;
+let answered  = new Array(questions.length).fill(null);
+let userAns   = new Array(questions.length).fill(null);
+const subjects = [...new Set(questions.map(q => q.s))];
+
+// Contar por dificuldade
+questions.forEach(q => DIFF_INFO[q.d].count++);
+
+// ── Nav pílulas ──────────────────────────────────────────────
+const navDiv = document.getElementById('nav-subjects');
+subjects.forEach((sub, i) => {
+  const pill = document.createElement('button');
+  pill.className = 'nav-pill';
+  pill.id = 'pill-' + i;
+  pill.textContent = sub;
+  pill.onclick = () => {
+    const firstQ = questions.findIndex(q => q.s === sub);
+    if (firstQ !== -1) goTo(firstQ);
+  };
+  navDiv.appendChild(pill);
+});
+
+// ── Construir cards ──────────────────────────────────────────
+const quizArea = document.getElementById('quiz-area');
+questions.forEach((q, idx) => {
+  const di = DIFF_INFO[q.d];
+  const card = document.createElement('div');
+  card.className = `question-card ${di.qcls}${idx === 0 ? ' active' : ''}`;
+  card.id = 'card-' + idx;
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+      <div class="diff-badge ${di.cls}">${di.label}</div>
+      <div class="subject-label">${q.s}</div>
+    </div>
+    <div class="q-header">
+      <div class="q-num">${idx+1}</div>
+      <div class="q-text">${q.q}</div>
+    </div>
+    <div class="options" id="opts-${idx}">
+      ${q.opts.map((o,i) => `
+        <div class="option" id="opt-${idx}-${i}" onclick="choose(${idx},${i})">
+          <span class="opt-letter">${LETTERS[i]}</span><span>${o}</span>
+        </div>`).join('')}
+    </div>
+    <div class="feedback" id="fb-${idx}"></div>
+    <button class="btn-next" id="btn-${idx}" onclick="next(${idx})">
+      ${idx < questions.length-1 ? 'Próxima questão →' : '🏁 Ver resultado'}
+    </button>`;
+  quizArea.appendChild(card);
+});
+
+// ── HUD ───────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('sc-c').textContent = correct;
+  document.getElementById('sc-w').textContent = wrong;
+  document.getElementById('sc-r').textContent = questions.length - correct - wrong;
+  document.getElementById('prog').style.width = ((correct+wrong)/questions.length*100)+'%';
+  document.getElementById('q-counter').textContent = `Questão ${current+1} de ${questions.length}`;
+}
+
+function updateNavPills() {
+  subjects.forEach((sub, i) => {
+    const pill = document.getElementById('pill-'+i);
+    const subQs = questions.map((q,idx)=>({q,idx})).filter(x=>x.q.s===sub);
+    const done  = subQs.filter(x=>answered[x.idx]!==null).length;
+    pill.classList.remove('np-active','np-done');
+    if (questions[current].s === sub) pill.classList.add('np-active');
+    else if (done === subQs.length)    pill.classList.add('np-done');
+  });
+}
+
+// ── Responder ─────────────────────────────────────────────────
+function choose(qIdx, optIdx) {
+  if (answered[qIdx] !== null) return;
+  answered[qIdx] = optIdx;
+  userAns[qIdx]  = optIdx;
+  const q = questions[qIdx];
+  const ok = optIdx === q.ans;
+  if (ok) correct++; else wrong++;
+
+  const opts = document.getElementById('opts-'+qIdx).children;
+  for (let i = 0; i < opts.length; i++) {
+    opts[i].classList.add('disabled');
+    if (i === q.ans) opts[i].classList.add('correct-ans');
+    if (i === optIdx && !ok) opts[i].classList.add('wrong-ans');
+  }
+  const fb = document.getElementById('fb-'+qIdx);
+  fb.className = 'feedback show ' + (ok ? 'fb-ok' : 'fb-err');
+  fb.innerHTML = (ok ? '✅ <strong>Correto!</strong> ' : '❌ <strong>Errado.</strong> ') + q.exp;
+  document.getElementById('btn-'+qIdx).classList.add('show');
+  updateHUD(); updateNavPills();
+}
+
+function goTo(idx) {
+  document.getElementById('card-'+current).classList.remove('active');
+  current = idx;
+  document.getElementById('card-'+current).classList.add('active');
+  document.getElementById('card-'+current).scrollIntoView({behavior:'smooth',block:'start'});
+  updateHUD(); updateNavPills();
+}
+
+function next(qIdx) {
+  if (qIdx < questions.length-1) goTo(qIdx+1);
+  else showResult();
+}
+
+// ── Resultado ─────────────────────────────────────────────────
+function showResult() {
+  quizArea.style.display = 'none';
+  navDiv.style.display   = 'none';
+  document.querySelector('.legend').style.display = 'none';
+
+  const panel = document.getElementById('result-panel');
+  panel.classList.add('show');
+
+  const pct = Math.round(correct/questions.length*100);
+  let emoji, msg;
+  if (pct>=90){emoji='🏆';msg='EXCELENTE! Domínio total do conteúdo!';}
+  else if(pct>=70){emoji='✅';msg='BOM! Revise as categorias em vermelho.';}
+  else if(pct>=50){emoji='⚠️';msg='ATENÇÃO! Estude mais os pontos fracos.';}
+  else{emoji='🚨';msg='PRECISA REFORÇAR! Volte ao resumão!';}
+
+  // Stats por dificuldade
+  const diffStats = {F:{c:0,e:0,t:0},M:{c:0,e:0,t:0},D:{c:0,e:0,t:0}};
+  questions.forEach((q,i)=>{
+    diffStats[q.d].t++;
+    if(answered[i]===q.ans) diffStats[q.d].c++;
+    else diffStats[q.d].e++;
+  });
+
+  function diffCard(key, label, dcCls, dcbCls) {
+    const {c,e,t} = diffStats[key];
+    const p = Math.round(c/t*100);
+    const errPct = Math.round(e/t*100);
+    return `<div class="diff-card ${dcCls}">
+      <div class="dc-title">${label}</div>
+      <div class="dc-big">${c}/${t}</div>
+      <div class="dc-sub">${p}% acertos · <strong style="color:#e74c3c">${errPct}% erros</strong></div>
+      <div class="dc-bar-wrap"><div class="dc-bar ${dcbCls}" style="width:${p}%"></div></div>
+    </div>`;
+  }
+
+  // Stats por matéria
+  const subStats = {};
+  subjects.forEach(s=>{subStats[s]={c:0,t:0};});
+  questions.forEach((q,i)=>{
+    subStats[q.s].t++;
+    if(answered[i]===q.ans) subStats[q.s].c++;
+  });
+
+  const radarRows = subjects.map(s=>{
+    const {c,t}=subStats[s], p=Math.round(c/t*100);
+    const cls=p===100?'rbf-dom':p>=50?'rbf-att':'rbf-fra';
+    const tcls=p===100?'rt-dom':p>=50?'rt-att':'rt-fra';
+    const tlbl=p===100?'✅ Dominado':p>=50?'⚠️ Atenção':'❌ Frágil';
+    return `<div class="radar-row">
+      <div class="radar-subject">${s}</div>
+      <div class="radar-bar-wrap"><div class="radar-bar-fill ${cls}" style="width:${p}%"></div></div>
+      <div class="radar-tag ${tcls}">${tlbl} ${c}/${t}</div>
+    </div>`;
+  }).join('');
+
+  // Fragilidades
+  const erros = questions.map((q,i)=>({q,i,ua:answered[i]})).filter(x=>x.ua!==null&&x.ua!==x.q.ans);
+  const fragHtml = erros.length===0
+    ? '<p style="text-align:center;font-size:28px;padding:20px">🎉 Você acertou tudo!</p>'
+    : erros.map(x=>{
+        const di=DIFF_INFO[x.q.d];
+        return `<div class="frag-item">
+          <div class="frag-diff ${di.fdcls}">${di.label}</div>
+          <strong>Q${x.i+1} – ${x.q.s}</strong><br>
+          <span style="opacity:.8;font-size:12px">${x.q.q.substring(0,90)}...</span><br>
+          Sua resp.: <strong style="color:#e74c3c">${LETTERS[x.ua]} – ${x.q.opts[x.ua]}</strong><br>
+          Correta: <strong style="color:#2ecc71">${LETTERS[x.q.ans]} – ${x.q.opts[x.q.ans]}</strong>
+        </div>`;}).join('');
+
+  // Email
+  const {F,M,D}=diffStats;
+  const emailBody = encodeURIComponent(
+    `RESULTADO SIMULADO PROVÃO BOMBEIROS CBMPA\n`+
+    `Pontuação: ${correct}/${questions.length} (${pct}%)\n\n`+
+    `=== POR DIFICULDADE ===\n`+
+    `Fácil:    ${F.c}/${F.t} (${Math.round(F.c/F.t*100)}% acertos, ${Math.round(F.e/F.t*100)}% erros)\n`+
+    `Moderado: ${M.c}/${M.t} (${Math.round(M.c/M.t*100)}% acertos, ${Math.round(M.e/M.t*100)}% erros)\n`+
+    `Difícil:  ${D.c}/${D.t} (${Math.round(D.c/D.t*100)}% acertos, ${Math.round(D.e/D.t*100)}% erros)\n\n`+
+    `=== POR MATÉRIA ===\n`+
+    subjects.map(s=>`${s}: ${subStats[s].c}/${subStats[s].t}`).join('\n')+
+    `\n\n=== QUESTÕES ERRADAS ===\n`+
+    erros.map(x=>`Q${x.i+1} [${x.q.s}][${x.q.d==='F'?'Fácil':x.q.d==='M'?'Moderado':'Difícil'}]: ${x.q.q.substring(0,60)}...`).join('\n')
+  );
+
+  panel.innerHTML = `
+    <div class="result-box">
+      <div class="result-emoji">${emoji}</div>
+      <div class="result-score">${correct}/${questions.length}</div>
+      <div class="result-pct">${pct}% de aproveitamento</div>
+      <div class="result-msg">${msg}</div>
+
+      <div class="section-title">📊 Desempenho por Nível de Dificuldade</div>
+      <div class="diff-report">
+        ${diffCard('F','🟢 Fácil','dc-f','dcb-f')}
+        ${diffCard('M','🟡 Moderado','dc-m','dcb-m')}
+        ${diffCard('D','🔴 Difícil','dc-d','dcb-d')}
+      </div>
+
+      <div class="section-title">📈 Desempenho por Matéria</div>
+      ${radarRows}
+
+      <div class="frag-section">
+        <div class="section-title">🔍 Questões Erradas</div>
+        ${fragHtml}
+      </div>
+
+      <div class="result-btns">
+        <button class="btn-retry" onclick="location.reload()">🔄 Refazer simulado</button>
+        <a class="btn-email" href="mailto:callegaribi@gmail.com?subject=Simulado Provão Bombeiros – ${pct}%&body=${emailBody}">📧 Mandar pro desenvolvedor</a>
+      </div>
+    </div>`;
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+updateHUD(); updateNavPills();
+</script>
+</body>
+</html>

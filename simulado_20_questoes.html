@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulado Provão CBMPA – 20 Questões</title>
+<style>
+  :root {
+    --red: #c0392b;
+    --dark: #1a1a2e;
+    --darker: #0f0f1a;
+    --card-bg: #16213e;
+    --card2: #1e2a45;
+    --text: #ecf0f1;
+    --muted: #7f8c8d;
+    --correct: #27ae60;
+    --wrong: #e74c3c;
+    --pending: #f39c12;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--darker);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #1a1a2e 0%, #c0392b 100%);
+    padding: 50px 20px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50px;
+    padding: 6px 18px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .hero h1 { font-size: clamp(24px, 4vw, 44px); font-weight: 900; line-height: 1.1; }
+  .hero h1 span { color: #f39c12; }
+  .hero p { margin-top: 10px; color: rgba(255,255,255,0.7); font-size: 16px; }
+
+  /* SCOREBOARD */
+  .scoreboard {
+    background: var(--dark);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .score-item { text-align: center; }
+  .score-num { font-size: 24px; font-weight: 900; }
+  .score-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+  .score-correct { color: var(--correct); }
+  .score-wrong { color: var(--wrong); }
+  .score-total { color: #f39c12; }
+
+  /* PROGRESS BAR */
+  .progress-wrap { background: rgba(255,255,255,0.1); height: 4px; }
+  .progress-bar {
+    height: 4px;
+    background: linear-gradient(90deg, #c0392b, #f39c12);
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* MAIN */
+  .container { max-width: 860px; margin: 0 auto; padding: 40px 20px 80px; }
+
+  /* QUESTION CARD */
+  .question-block {
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 28px;
+    overflow: hidden;
+    transition: box-shadow 0.3s;
+  }
+  .question-block:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+
+  .q-header {
+    display: flex; align-items: center; gap: 14px;
+    padding: 18px 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .q-num {
+    min-width: 42px; height: 42px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 16px;
+    background: rgba(192,57,43,0.25);
+    color: #e74c3c;
+    flex-shrink: 0;
+  }
+  .q-subject { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
+  .q-text { font-size: 16px; font-weight: 600; line-height: 1.5; flex: 1; }
+
+  /* STATUS ICONS */
+  .q-status { font-size: 22px; flex-shrink: 0; opacity: 0; transition: opacity 0.3s; }
+  .answered .q-status { opacity: 1; }
+
+  /* ALTERNATIVES */
+  .alternatives { padding: 16px 22px 20px; display: flex; flex-direction: column; gap: 10px; }
+  .alt {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255,255,255,0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255,255,255,0.03);
+    font-size: 14px;
+    line-height: 1.5;
+    user-select: none;
+  }
+  .alt:hover:not(.disabled) {
+    border-color: rgba(192,57,43,0.5);
+    background: rgba(192,57,43,0.08);
+  }
+  .alt-letter {
+    min-width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px;
+    background: rgba(255,255,255,0.1);
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .alt.selected { border-color: #3498db; background: rgba(52,152,219,0.12); }
+  .alt.selected .alt-letter { background: #3498db; color: white; }
+  .alt.correct { border-color: var(--correct); background: rgba(39,174,96,0.15); }
+  .alt.correct .alt-letter { background: var(--correct); color: white; }
+  .alt.wrong { border-color: var(--wrong); background: rgba(231,76,60,0.12); }
+  .alt.wrong .alt-letter { background: var(--wrong); color: white; }
+  .alt.disabled { cursor: default; pointer-events: none; }
+
+  /* FEEDBACK */
+  .feedback {
+    margin: 0 22px 20px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+    display: none;
+    border: 1px solid;
+  }
+  .feedback.show { display: flex; gap: 10px; align-items: flex-start; }
+  .feedback.correct-fb { background: rgba(39,174,96,0.15); border-color: rgba(39,174,96,0.4); }
+  .feedback.wrong-fb { background: rgba(231,76,60,0.12); border-color: rgba(231,76,60,0.4); }
+  .feedback .fb-icon { font-size: 20px; flex-shrink: 0; }
+
+  /* FINAL RESULT */
+  .result-panel {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: none;
+    margin-top: 20px;
+  }
+  .result-panel.show { display: block; }
+  .result-emoji { font-size: 80px; margin-bottom: 16px; }
+  .result-score { font-size: 64px; font-weight: 900; }
+  .result-label { font-size: 22px; font-weight: 700; margin: 8px 0; }
+  .result-sub { color: var(--muted); font-size: 15px; }
+  .result-detail {
+    display: flex; justify-content: center; gap: 40px;
+    margin: 30px 0; flex-wrap: wrap;
+  }
+  .result-stat .big { font-size: 36px; font-weight: 900; }
+  .result-stat .small { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+  /* FRAGILITY SECTION */
+  .fragility-wrap {
+    background: rgba(0,0,0,0.25);
+    border-radius: 16px;
+    padding: 24px;
+    margin: 24px 0;
+    text-align: left;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .fragility-title {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--muted); margin-bottom: 16px; text-align: center;
+  }
+  .wrong-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+  .wrong-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: rgba(231,76,60,0.1);
+    border: 1px solid rgba(231,76,60,0.25);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .wrong-num {
+    min-width: 28px; height: 28px;
+    background: var(--wrong); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 900; flex-shrink: 0;
+  }
+  .wrong-info strong { display: block; font-size: 13px; margin-bottom: 2px; }
+  .wrong-info span { font-size: 12px; color: rgba(255,255,255,0.5); }
+
+  .subject-radar { display: flex; flex-direction: column; gap: 8px; }
+  .radar-row { display: flex; align-items: center; gap: 10px; }
+  .radar-label { font-size: 12px; min-width: 160px; color: rgba(255,255,255,0.75); }
+  .radar-bar-wrap { flex: 1; background: rgba(255,255,255,0.08); border-radius: 50px; height: 8px; overflow: hidden; }
+  .radar-bar { height: 8px; border-radius: 50px; transition: width 0.8s ease; }
+  .radar-tag {
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 50px; min-width: 70px; text-align: center;
+  }
+  .tag-ok { background: rgba(39,174,96,0.25); color: #2ecc71; }
+  .tag-warn { background: rgba(241,196,15,0.2); color: #f1c40f; }
+  .tag-danger { background: rgba(231,76,60,0.2); color: #e74c3c; }
+
+  .divider { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin: 20px 0; }
+
+  .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+  .btn-retry {
+    background: var(--red);
+    color: white; border: none;
+    padding: 14px 28px; border-radius: 50px;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .btn-retry:hover { background: #922b21; }
+  .btn-email {
+    background: #0a84ff;
+    color: white; border: none;
+    padding: 14px 28px; border-radius: 50px;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-email:hover { background: #006edc; }
+
+  /* SUBJECT TAGS */
+  .subject-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: white;
+  }
+
+  /* SECTION DIVIDERS */
+  .section-div {
+    display: flex; align-items: center; gap: 12px;
+    margin: 32px 0 20px;
+  }
+  .section-div span { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); white-space: nowrap; }
+  .section-div::before, .section-div::after {
+    content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.08);
+  }
+
+  footer {
+    text-align: center; padding: 30px; color: var(--muted); font-size: 13px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-badge">🎯 Simulado Oficial</div>
+  <h1>Provão <span>CBMPA</span></h1>
+  <p>20 questões · 2 por matéria · 5 alternativas · Estilo banca</p>
+</div>
+
+<div class="scoreboard">
+  <div class="score-item"><div class="score-num score-correct" id="sc-correct">0</div><div class="score-label">✅ Certas</div></div>
+  <div class="score-item"><div class="score-num score-wrong" id="sc-wrong">0</div><div class="score-label">❌ Erradas</div></div>
+  <div class="score-item"><div class="score-num score-total" id="sc-pct">0%</div><div class="score-label">📊 Aproveitamento</div></div>
+  <div class="score-item"><div class="score-num" id="sc-rem" style="color:#aed6f1">20</div><div class="score-label">⏳ Restantes</div></div>
+</div>
+<div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+<div class="container">
+
+  <!-- ===== INSTRUÇÃO MILITAR ===== -->
+  <div class="section-div"><span>🎖 Instrução Militar</span></div>
+
+  <div class="question-block" id="q1">
+    <div class="q-header">
+      <div class="q-num">01</div>
+      <div style="flex:1">
+        <div class="q-subject">Instrução Militar</div>
+        <div class="q-text">Na Ordem Unida, ao comando de "MEIA VOLTA — VOLVER", o militar executa um giro de 180°. Sobre os apoios utilizados nesse movimento, é CORRETO afirmar:</div>
+      </div>
+      <div class="q-status" id="q1-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(1,'A',false)"><div class="alt-letter">A</div><div>O giro é realizado sobre a ponta do pé direito e o calcanhar esquerdo, em um único tempo.</div></div>
+      <div class="alt" onclick="answer(1,'B',true)"><div class="alt-letter">B</div><div>O giro é feito sobre o calcanhar direito e a ponta do pé esquerdo, completando-se em dois tempos.</div></div>
+      <div class="alt" onclick="answer(1,'C',false)"><div class="alt-letter">C</div><div>O militar deve executar o giro com os dois pés paralelos no chão, sem apoio definido.</div></div>
+      <div class="alt" onclick="answer(1,'D',false)"><div class="alt-letter">D</div><div>O movimento é realizado sobre a ponta de ambos os pés, em sentido horário, em três tempos.</div></div>
+      <div class="alt" onclick="answer(1,'E',false)"><div class="alt-letter">E</div><div>O calcanhar esquerdo e a ponta do pé direito são os pontos de apoio, girando em sentido anti-horário.</div></div>
+    </div>
+    <div class="feedback" id="q1-fb"></div>
+  </div>
+
+  <div class="question-block" id="q2">
+    <div class="q-header">
+      <div class="q-num">02</div>
+      <div style="flex:1">
+        <div class="q-subject">Instrução Militar</div>
+        <div class="q-text">Em relação à hierarquia militar, analise as afirmativas:<br>I. O Sargento é uma graduação de praça intermediária.<br>II. O Capitão é o mais elevado posto de oficial intermediário.<br>III. A hierarquia assegura a ordem e a disciplina na corporação.<br>IV. O Aspirante a Oficial não tem subordinados.<br><br>Estão CORRETAS:</div>
+      </div>
+      <div class="q-status" id="q2-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(2,'A',false)"><div class="alt-letter">A</div><div>Apenas I e IV.</div></div>
+      <div class="alt" onclick="answer(2,'B',false)"><div class="alt-letter">B</div><div>Apenas II e III.</div></div>
+      <div class="alt" onclick="answer(2,'C',true)"><div class="alt-letter">C</div><div>I, II e III.</div></div>
+      <div class="alt" onclick="answer(2,'D',false)"><div class="alt-letter">D</div><div>Todas as afirmativas.</div></div>
+      <div class="alt" onclick="answer(2,'E',false)"><div class="alt-letter">E</div><div>Apenas I e III.</div></div>
+    </div>
+    <div class="feedback" id="q2-fb"></div>
+  </div>
+
+  <!-- ===== DEFESA CIVIL ===== -->
+  <div class="section-div"><span>🏘 Defesa Civil</span></div>
+
+  <div class="question-block" id="q3">
+    <div class="q-header">
+      <div class="q-num">03</div>
+      <div style="flex:1">
+        <div class="q-subject">Defesa Civil</div>
+        <div class="q-text">Segundo a Política Nacional de Proteção e Defesa Civil (Lei 12.608/2012), as ações de defesa civil são organizadas em cinco fases. A fase de RESPOSTA se caracteriza por:</div>
+      </div>
+      <div class="q-status" id="q3-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(3,'A',false)"><div class="alt-letter">A</div><div>Identificar e mapear as áreas de risco antes da ocorrência do desastre.</div></div>
+      <div class="alt" onclick="answer(3,'B',false)"><div class="alt-letter">B</div><div>Capacitar a população por meio de simulacros e campanhas de conscientização.</div></div>
+      <div class="alt" onclick="answer(3,'C',false)"><div class="alt-letter">C</div><div>Restabelecer os serviços públicos e a infraestrutura destruída pelo desastre.</div></div>
+      <div class="alt" onclick="answer(3,'D',true)"><div class="alt-letter">D</div><div>Atender imediatamente as vítimas, reduzir danos e socorrer a população após a ocorrência do desastre.</div></div>
+      <div class="alt" onclick="answer(3,'E',false)"><div class="alt-letter">E</div><div>Elaborar planos de contingência e sistemas de alerta precoce.</div></div>
+    </div>
+    <div class="feedback" id="q3-fb"></div>
+  </div>
+
+  <div class="question-block" id="q4">
+    <div class="q-header">
+      <div class="q-num">04</div>
+      <div style="flex:1">
+        <div class="q-subject">Defesa Civil</div>
+        <div class="q-text">O NUDEC (Núcleo Comunitário de Defesa Civil) é a estrutura organizacional da Defesa Civil que atua na base da pirâmide do SINPDEC. Assinale a alternativa que MELHOR descreve sua atuação:</div>
+      </div>
+      <div class="q-status" id="q4-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(4,'A',false)"><div class="alt-letter">A</div><div>Coordenar as ações de defesa civil em nível estadual, integrando municípios em situação de calamidade.</div></div>
+      <div class="alt" onclick="answer(4,'B',false)"><div class="alt-letter">B</div><div>Reconhecer o Estado de Calamidade Pública e liberar recursos federais para o atendimento.</div></div>
+      <div class="alt" onclick="answer(4,'C',true)"><div class="alt-letter">C</div><div>Atuar na comunidade local realizando ações preventivas, alertas e primeiros socorros de forma voluntária.</div></div>
+      <div class="alt" onclick="answer(4,'D',false)"><div class="alt-letter">D</div><div>Fiscalizar o cumprimento das normas de segurança em obras públicas nos municípios.</div></div>
+      <div class="alt" onclick="answer(4,'E',false)"><div class="alt-letter">E</div><div>Gerenciar recursos financeiros destinados à reconstrução de áreas afetadas por desastres.</div></div>
+    </div>
+    <div class="feedback" id="q4-fb"></div>
+  </div>
+
+  <!-- ===== APH ===== -->
+  <div class="section-div"><span>🚑 Atendimento Pré-Hospitalar</span></div>
+
+  <div class="question-block" id="q5">
+    <div class="q-header">
+      <div class="q-num">05</div>
+      <div style="flex:1">
+        <div class="q-subject">APH</div>
+        <div class="q-text">Um bombeiro chega a uma cena de acidente de trânsito e encontra uma vítima adulta em parada cardiorrespiratória. Seguindo as diretrizes do Suporte Básico de Vida (SBV), qual é a sequência CORRETA de atendimento?</div>
+      </div>
+      <div class="q-status" id="q5-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(5,'A',false)"><div class="alt-letter">A</div><div>Abrir vias aéreas → ventilar 2 vezes → iniciar compressões 30:2 → usar DEA.</div></div>
+      <div class="alt" onclick="answer(5,'B',true)"><div class="alt-letter">B</div><div>Verificar segurança da cena → checar responsividade → acionar socorro → iniciar compressões torácicas (30:2) → usar DEA assim que disponível.</div></div>
+      <div class="alt" onclick="answer(5,'C',false)"><div class="alt-letter">C</div><div>Verificar pulso por 30 segundos → chamar reforços → ventilar 5 vezes → comprimir 15 vezes.</div></div>
+      <div class="alt" onclick="answer(5,'D',false)"><div class="alt-letter">D</div><div>Aplicar DEA imediatamente → iniciar compressões → ventilar a cada 5 compressões.</div></div>
+      <div class="alt" onclick="answer(5,'E',false)"><div class="alt-letter">E</div><div>Imobilizar coluna → desfibrilar → comprimir o tórax → abrir vias aéreas.</div></div>
+    </div>
+    <div class="feedback" id="q5-fb"></div>
+  </div>
+
+  <div class="question-block" id="q6">
+    <div class="q-header">
+      <div class="q-num">06</div>
+      <div style="flex:1">
+        <div class="q-subject">APH</div>
+        <div class="q-text">Na triagem START utilizada em incidentes com múltiplas vítimas (IMV), uma vítima é classificada como VERMELHA (prioridade imediata) quando apresenta:</div>
+      </div>
+      <div class="q-status" id="q6-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(6,'A',false)"><div class="alt-letter">A</div><div>Capacidade de deambular, sem alterações respiratórias e com perfusão normal.</div></div>
+      <div class="alt" onclick="answer(6,'B',false)"><div class="alt-letter">B</div><div>Frequência respiratória entre 10 e 29/min, TEC &lt; 2s e obedece a comandos verbais.</div></div>
+      <div class="alt" onclick="answer(6,'C',false)"><div class="alt-letter">C</div><div>Ausência de respiração mesmo após abertura manual das vias aéreas.</div></div>
+      <div class="alt" onclick="answer(6,'D',true)"><div class="alt-letter">D</div><div>Frequência respiratória &gt; 30/min, TEC &gt; 2s ou ausência de resposta a comandos verbais simples.</div></div>
+      <div class="alt" onclick="answer(6,'E',false)"><div class="alt-letter">E</div><div>Vítima com ferimentos superficiais, consciente e orientada, aguardando atendimento.</div></div>
+    </div>
+    <div class="feedback" id="q6-fb"></div>
+  </div>
+
+  <!-- ===== SALVAMENTO TERRESTRE ===== -->
+  <div class="section-div"><span>⛰ Salvamento Terrestre</span></div>
+
+  <div class="question-block" id="q7">
+    <div class="q-header">
+      <div class="q-num">07</div>
+      <div style="flex:1">
+        <div class="q-subject">T.M. Salvamento Terrestre</div>
+        <div class="q-text">O sistema de polias 3:1 (Sistema Z) é amplamente utilizado no salvamento terrestre para içamento de cargas pesadas. Sobre este sistema, é INCORRETO afirmar:</div>
+      </div>
+      <div class="q-status" id="q7-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(7,'A',false)"><div class="alt-letter">A</div><div>A vantagem mecânica do sistema permite que uma carga de 90 kg seja erguida com esforço equivalente a 30 kg.</div></div>
+      <div class="alt" onclick="answer(7,'B',false)"><div class="alt-letter">B</div><div>O uso de um bloqueador (prusik ou câmara de trava) como tirador evita que a carga retroceda durante o içamento.</div></div>
+      <div class="alt" onclick="answer(7,'C',false)"><div class="alt-letter">C</div><div>O sistema Z utiliza duas polias (uma fixa e uma móvel) e uma corda de içamento contínua.</div></div>
+      <div class="alt" onclick="answer(7,'D',true)"><div class="alt-letter">D</div><div>Para aumentar para 6:1, basta adicionar mais uma polia fixa ao sistema Z original, sem necessidade de corda adicional.</div></div>
+      <div class="alt" onclick="answer(7,'E',false)"><div class="alt-letter">E</div><div>O sistema Z requer ancoragem sólida capaz de suportar ao menos o dobro do peso a ser içado.</div></div>
+    </div>
+    <div class="feedback" id="q7-fb"></div>
+  </div>
+
+  <div class="question-block" id="q8">
+    <div class="q-header">
+      <div class="q-num">08</div>
+      <div style="flex:1">
+        <div class="q-subject">T.M. Salvamento Terrestre</div>
+        <div class="q-text">Durante operação de salvamento em terreno acidentado, a equipe precisa fixar uma ancoragem confiável em poste metálico. O nó mais indicado para fixação em suportes cilíndricos, por sua segurança e facilidade de desfazimento após carga, é:</div>
+      </div>
+      <div class="q-status" id="q8-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(8,'A',false)"><div class="alt-letter">A</div><div>Nó oito simples.</div></div>
+      <div class="alt" onclick="answer(8,'B',false)"><div class="alt-letter">B</div><div>Nó plano (direito).</div></div>
+      <div class="alt" onclick="answer(8,'C',true)"><div class="alt-letter">C</div><div>Volta do fiel (dois meios-balancins).</div></div>
+      <div class="alt" onclick="answer(8,'D',false)"><div class="alt-letter">D</div><div>Nó borboleta alpino.</div></div>
+      <div class="alt" onclick="answer(8,'E',false)"><div class="alt-letter">E</div><div>Nó de guiador (Munter).</div></div>
+    </div>
+    <div class="feedback" id="q8-fb"></div>
+  </div>
+
+  <!-- ===== OP PERIGOSOS ===== -->
+  <div class="section-div"><span>☣ Operações com Produtos Perigosos</span></div>
+
+  <div class="question-block" id="q9">
+    <div class="q-header">
+      <div class="q-num">09</div>
+      <div style="flex:1">
+        <div class="q-subject">OP Perigosos</div>
+        <div class="q-text">Durante atendimento a acidente com caminhão tanque, o bombeiro observa no painel de segurança o número de risco "X33" e o número ONU "1203". Com base nestas informações, é CORRETO afirmar que o produto é:</div>
+      </div>
+      <div class="q-status" id="q9-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(9,'A',false)"><div class="alt-letter">A</div><div>Um gás comprimido não inflamável que reage violentamente com a água.</div></div>
+      <div class="alt" onclick="answer(9,'B',false)"><div class="alt-letter">B</div><div>Um corrosivo inflamável que provoca queimaduras graves em contato com a pele.</div></div>
+      <div class="alt" onclick="answer(9,'C',true)"><div class="alt-letter">C</div><div>Gasolina (líquido inflamável) que reage violentamente com água — o "X" indica proibição de uso de água.</div></div>
+      <div class="alt" onclick="answer(9,'D',false)"><div class="alt-letter">D</div><div>Um explosivo líquido de alta periculosidade, classe 1, divisão 1.3.</div></div>
+      <div class="alt" onclick="answer(9,'E',false)"><div class="alt-letter">E</div><div>Um oxidante líquido que acelera a combustão de outros materiais.</div></div>
+    </div>
+    <div class="feedback" id="q9-fb"></div>
+  </div>
+
+  <div class="question-block" id="q10">
+    <div class="q-header">
+      <div class="q-num">10</div>
+      <div style="flex:1">
+        <div class="q-subject">OP Perigosos</div>
+        <div class="q-text">Em operações com produtos perigosos, a Zona Quente representa a área de maior risco. Sobre o EPI de Nível A, utilizado nesta zona, é CORRETO afirmar:</div>
+      </div>
+      <div class="q-status" id="q10-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(10,'A',false)"><div class="alt-letter">A</div><div>Oferece proteção respiratória com filtros purificadores de ar e roupa de tecido resistente a produtos químicos.</div></div>
+      <div class="alt" onclick="answer(10,'B',true)"><div class="alt-letter">B</div><div>Consiste em roupa totalmente encapsulada com SCBA interno, oferecendo máxima proteção dérmica e respiratória.</div></div>
+      <div class="alt" onclick="answer(10,'C',false)"><div class="alt-letter">C</div><div>É utilizado quando há risco biológico leve, sem necessidade de proteção respiratória independente.</div></div>
+      <div class="alt" onclick="answer(10,'D',false)"><div class="alt-letter">D</div><div>Equivale ao nível B acrescido de máscara facial — indicado para zonas mornas.</div></div>
+      <div class="alt" onclick="answer(10,'E',false)"><div class="alt-letter">E</div><div>Pode ser substituído pelo uniforme padrão de combate a incêndio estrutural quando o produto é identificado.</div></div>
+    </div>
+    <div class="feedback" id="q10-fb"></div>
+  </div>
+
+  <!-- ===== AQUÁTICO ===== -->
+  <div class="section-div"><span>🌊 Salvamento Aquático</span></div>
+
+  <div class="question-block" id="q11">
+    <div class="q-header">
+      <div class="q-num">11</div>
+      <div style="flex:1">
+        <div class="q-subject">Salvamento Aquático</div>
+        <div class="q-text">Aplicando o princípio ARRE de salvamento aquático, um guarda-vidas avista uma vítima consciente a 5 metros da beira do rio. Qual deve ser a PRIMEIRA ação do socorrista?</div>
+      </div>
+      <div class="q-status" id="q11-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(11,'A',false)"><div class="alt-letter">A</div><div>Entrar imediatamente na água e nadar até a vítima para rebocar ao margem.</div></div>
+      <div class="alt" onclick="answer(11,'B',false)"><div class="alt-letter">B</div><div>Remar com uma embarcação de resgate até a vítima e içá-la a bordo.</div></div>
+      <div class="alt" onclick="answer(11,'C',true)"><div class="alt-letter">C</div><div>Tentar alcançar a vítima com vara, corda, flutuador ou qualquer objeto sem entrar na água.</div></div>
+      <div class="alt" onclick="answer(11,'D',false)"><div class="alt-letter">D</div><div>Acionar o SAMU e aguardar equipe especializada antes de qualquer intervenção.</div></div>
+      <div class="alt" onclick="answer(11,'E',false)"><div class="alt-letter">E</div><div>Arremessar a corda de resgate mesmo sem verificar se a vítima está consciente.</div></div>
+    </div>
+    <div class="feedback" id="q11-fb"></div>
+  </div>
+
+  <div class="question-block" id="q12">
+    <div class="q-header">
+      <div class="q-num">12</div>
+      <div style="flex:1">
+        <div class="q-subject">Salvamento Aquático</div>
+        <div class="q-text">Segundo a Classificação de Afogamento de Szpilman, uma vítima em Grau 4 apresenta:</div>
+      </div>
+      <div class="q-status" id="q12-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(12,'A',false)"><div class="alt-letter">A</div><div>Tosse leve, sem espuma na boca, consciente e orientada — alta após observação de 6 horas.</div></div>
+      <div class="alt" onclick="answer(12,'B',false)"><div class="alt-letter">B</div><div>Parada cardiorrespiratória — necessita RCP imediata e desfibrilação.</div></div>
+      <div class="alt" onclick="answer(12,'C',false)"><div class="alt-letter">C</div><div>Edema pulmonar leve com ausculta alterada, vítima consciente e responsiva.</div></div>
+      <div class="alt" onclick="answer(12,'D',true)"><div class="alt-letter">D</div><div>Edema pulmonar grave com hipoxemia intensa, vítima inconsciente mas com pulso presente.</div></div>
+      <div class="alt" onclick="answer(12,'E',false)"><div class="alt-letter">E</div><div>Parada respiratória isolada, sem comprometimento circulatório.</div></div>
+    </div>
+    <div class="feedback" id="q12-fb"></div>
+  </div>
+
+  <!-- ===== SALVAMENTO EM ALTURA ===== -->
+  <div class="section-div"><span>🧗 Salvamento em Altura</span></div>
+
+  <div class="question-block" id="q13">
+    <div class="q-header">
+      <div class="q-num">13</div>
+      <div style="flex:1">
+        <div class="q-subject">Salvamento em Altura</div>
+        <div class="q-text">Uma vítima fica suspensa em seu arnês após uma queda numa obra, sem conseguir se mover. A equipe de bombeiros chega ao local. Em relação à Síndrome do Arnês (Suspension Trauma), é CORRETO afirmar:</div>
+      </div>
+      <div class="q-status" id="q13-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(13,'A',false)"><div class="alt-letter">A</div><div>A vítima deve ser imediatamente deitada no chão assim que descida, pois o decúbito dorsal acelera a recuperação circulatória.</div></div>
+      <div class="alt" onclick="answer(13,'B',false)"><div class="alt-letter">B</div><div>O risco de síndrome do arnês é exclusivo de vítimas com doenças cardiovasculares preexistentes.</div></div>
+      <div class="alt" onclick="answer(13,'C',false)"><div class="alt-letter">C</div><div>A suspensão prolongada no arnês é segura por até 60 minutos em pessoas saudáveis.</div></div>
+      <div class="alt" onclick="answer(13,'D',true)"><div class="alt-letter">D</div><div>Após a retirada do arnês, a vítima deve ser mantida em posição semi-sentada por cerca de 30 minutos, pois deitar imediatamente pode precipitar colapso circulatório.</div></div>
+      <div class="alt" onclick="answer(13,'E',false)"><div class="alt-letter">E</div><div>O socorrista deve cortar o arnês imediatamente para liberar a circulação, mesmo sem ponto de apoio seguro.</div></div>
+    </div>
+    <div class="feedback" id="q13-fb"></div>
+  </div>
+
+  <div class="question-block" id="q14">
+    <div class="q-header">
+      <div class="q-num">14</div>
+      <div style="flex:1">
+        <div class="q-subject">Salvamento em Altura</div>
+        <div class="q-text">Segundo a NR-35 (Trabalho em Altura), considera-se trabalho em altura qualquer atividade executada acima de:</div>
+      </div>
+      <div class="q-status" id="q14-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(14,'A',false)"><div class="alt-letter">A</div><div>1,0 metro do nível inferior, onde haja risco de queda.</div></div>
+      <div class="alt" onclick="answer(14,'B',true)"><div class="alt-letter">B</div><div>2,0 metros do nível inferior, onde haja risco de queda com lesão.</div></div>
+      <div class="alt" onclick="answer(14,'C',false)"><div class="alt-letter">C</div><div>3,0 metros do nível inferior, independente do risco de queda.</div></div>
+      <div class="alt" onclick="answer(14,'D',false)"><div class="alt-letter">D</div><div>5,0 metros do nível inferior, quando não houver proteção coletiva.</div></div>
+      <div class="alt" onclick="answer(14,'E',false)"><div class="alt-letter">E</div><div>1,5 metro do nível inferior, conforme definição da ABNT.</div></div>
+    </div>
+    <div class="feedback" id="q14-fb"></div>
+  </div>
+
+  <!-- ===== SALVAMENTO VEICULAR ===== -->
+  <div class="section-div"><span>🚗 Salvamento Veicular</span></div>
+
+  <div class="question-block" id="q15">
+    <div class="q-header">
+      <div class="q-num">15</div>
+      <div style="flex:1">
+        <div class="q-subject">Salvamento Veicular</div>
+        <div class="q-text">Ao atender um acidente com veículo elétrico, a equipe de bombeiros deve adotar procedimentos específicos. A respeito do gerenciamento de energia nesse tipo de veículo, assinale a alternativa CORRETA:</div>
+      </div>
+      <div class="q-status" id="q15-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(15,'A',false)"><div class="alt-letter">A</div><div>Desconectar primeiro o cabo positivo da bateria de alta tensão, pois elimina o risco de arco elétrico.</div></div>
+      <div class="alt" onclick="answer(15,'B',false)"><div class="alt-letter">B</div><div>A bateria de veículos elétricos opera em 12V, sem risco adicional em relação a veículos convencionais.</div></div>
+      <div class="alt" onclick="answer(15,'C',false)"><div class="alt-letter">C</div><div>Utilizar ferramentas hidráulicas normalmente, pois a corrente elétrica não é conduzida pelo aço das ferramentas.</div></div>
+      <div class="alt" onclick="answer(15,'D',true)"><div class="alt-letter">D</div><div>Desconectar o cabo negativo da bateria de 12V de serviço e usar o Emergency Response Guide específico do fabricante antes de qualquer corte.</div></div>
+      <div class="alt" onclick="answer(15,'E',false)"><div class="alt-letter">E</div><div>Água pode ser usada livremente no sistema de baterias de veículos elétricos para resfriamento.</div></div>
+    </div>
+    <div class="feedback" id="q15-fb"></div>
+  </div>
+
+  <div class="question-block" id="q16">
+    <div class="q-header">
+      <div class="q-num">16</div>
+      <div style="flex:1">
+        <div class="q-subject">Salvamento Veicular</div>
+        <div class="q-text">Na fase de ESTABILIZAÇÃO do veículo em um acidente, qual conjunto de ações representa o procedimento CORRETO?</div>
+      </div>
+      <div class="q-status" id="q16-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(16,'A',false)"><div class="alt-letter">A</div><div>Remover imediatamente as vítimas antes de estabilizar, pois o risco de explosão é iminente.</div></div>
+      <div class="alt" onclick="answer(16,'B',true)"><div class="alt-letter">B</div><div>Posicionar cunhas nas rodas, escoras rígidas nos pontos estruturais (soleira/longarina) e testar a estabilidade empurrando levemente o veículo antes de entrar.</div></div>
+      <div class="alt" onclick="answer(16,'C',false)"><div class="alt-letter">C</div><div>Encher os pneus murchos com ar comprimido para nivelar o veículo e melhorar o acesso.</div></div>
+      <div class="alt" onclick="answer(16,'D',false)"><div class="alt-letter">D</div><div>Usar apenas a embreagem ou freio de mão do veículo como mecanismo exclusivo de estabilização.</div></div>
+      <div class="alt" onclick="answer(16,'E',false)"><div class="alt-letter">E</div><div>Aguardar que o veículo pare de se mover espontaneamente antes de iniciar qualquer procedimento.</div></div>
+    </div>
+    <div class="feedback" id="q16-fb"></div>
+  </div>
+
+  <!-- ===== TMI ===== -->
+  <div class="section-div"><span>🔥 Técnicas e Manobras de Incêndio</span></div>
+
+  <div class="question-block" id="q17">
+    <div class="q-header">
+      <div class="q-num">17</div>
+      <div style="flex:1">
+        <div class="q-subject">TMI</div>
+        <div class="q-text">Um bombeiro observa fumaça pulsante e oleosa saindo por frestas de uma edificação fechada, janelas escurecidas e calor intenso sem chamas visíveis. Esses sinais indicam risco iminente de:</div>
+      </div>
+      <div class="q-status" id="q17-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(17,'A',false)"><div class="alt-letter">A</div><div>Flashover — ignição simultânea de todos os materiais quando a temperatura atinge 600°C.</div></div>
+      <div class="alt" onclick="answer(17,'B',true)"><div class="alt-letter">B</div><div>Backdraft — explosão causada pela entrada súbita de ar em compartimento superaquecido com déficit de oxigênio.</div></div>
+      <div class="alt" onclick="answer(17,'C',false)"><div class="alt-letter">C</div><div>Rollover — ignição dos gases quentes que se acumulam e rodam pela parte superior do compartimento.</div></div>
+      <div class="alt" onclick="answer(17,'D',false)"><div class="alt-letter">D</div><div>Fire Gas Ignition — ignição de gases a distância, fora do ambiente em chamas.</div></div>
+      <div class="alt" onclick="answer(17,'E',false)"><div class="alt-letter">E</div><div>Boilover — projeção violenta de líquido inflamável em tanques de armazenamento.</div></div>
+    </div>
+    <div class="feedback" id="q17-fb"></div>
+  </div>
+
+  <div class="question-block" id="q18">
+    <div class="q-header">
+      <div class="q-num">18</div>
+      <div style="flex:1">
+        <div class="q-subject">TMI</div>
+        <div class="q-text">Um incêndio em painel elétrico energizado (Classe C) está se desenvolvendo em uma sala fechada. Qual agente extintor é CONTRAINDICADO e por quê?</div>
+      </div>
+      <div class="q-status" id="q18-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(18,'A',false)"><div class="alt-letter">A</div><div>CO₂, pois reage quimicamente com os componentes metálicos do painel e agrava o incêndio.</div></div>
+      <div class="alt" onclick="answer(18,'B',false)"><div class="alt-letter">B</div><div>Pó Químico Seco (PQS), pois sua pressão de descarga pode danificar os componentes eletrônicos.</div></div>
+      <div class="alt" onclick="answer(18,'C',true)"><div class="alt-letter">C</div><div>Água, pois é condutora de eletricidade e pode provocar choque no bombeiro e expansão do incêndio.</div></div>
+      <div class="alt" onclick="answer(18,'D',false)"><div class="alt-letter">D</div><div>Espuma mecânica, pois não atinge a temperatura mínima necessária para extinguir incêndios elétricos.</div></div>
+      <div class="alt" onclick="answer(18,'E',false)"><div class="alt-letter">E</div><div>PQS ABC, pois sua composição química reage com o oxigênio e aumenta a propagação das chamas.</div></div>
+    </div>
+    <div class="feedback" id="q18-fb"></div>
+  </div>
+
+  <!-- ===== INCÊNDIO FLORESTAL ===== -->
+  <div class="section-div"><span>🌲 Incêndio Florestal</span></div>
+
+  <div class="question-block" id="q19">
+    <div class="q-header">
+      <div class="q-num">19</div>
+      <div style="flex:1">
+        <div class="q-subject">Incêndio Florestal</div>
+        <div class="q-text">Uma brigada de combate a incêndio florestal está no flanco direito de um incêndio em encosta com 30° de inclinação. O vento sofre mudança repentina de direção. Qual ação de segurança o líder deve ordenar IMEDIATAMENTE?</div>
+      </div>
+      <div class="q-status" id="q19-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(19,'A',false)"><div class="alt-letter">A</div><div>Apressar o combate direto às chamas para extinguir o incêndio antes que o vento piore a situação.</div></div>
+      <div class="alt" onclick="answer(19,'B',false)"><div class="alt-letter">B</div><div>Recuar morro acima para se afastar das chamas com maior rapidez possível.</div></div>
+      <div class="alt" onclick="answer(19,'C',true)"><div class="alt-letter">C</div><div>Retirar a equipe pela rota de fuga previamente estabelecida em direção à zona de segurança, comunicando ao Comando imediatamente.</div></div>
+      <div class="alt" onclick="answer(19,'D',false)"><div class="alt-letter">D</div><div>Iniciar contrafogo imediato para criar barreira entre a equipe e o avanço das chamas.</div></div>
+      <div class="alt" onclick="answer(19,'E',false)"><div class="alt-letter">E</div><div>Aguardar novas informações meteorológicas antes de tomar qualquer decisão de segurança.</div></div>
+    </div>
+    <div class="feedback" id="q19-fb"></div>
+  </div>
+
+  <div class="question-block" id="q20">
+    <div class="q-header">
+      <div class="q-num">20</div>
+      <div style="flex:1">
+        <div class="q-subject">Incêndio Florestal</div>
+        <div class="q-text">No que se refere ao comportamento do fogo florestal, a CABEÇA do incêndio é caracterizada por:</div>
+      </div>
+      <div class="q-status" id="q20-status"></div>
+    </div>
+    <div class="alternatives">
+      <div class="alt" onclick="answer(20,'A',false)"><div class="alt-letter">A</div><div>Ser a parte mais lenta do incêndio, oposta ao vento dominante, com menor intensidade de chamas.</div></div>
+      <div class="alt" onclick="answer(20,'B',false)"><div class="alt-letter">B</div><div>Localizar-se perpendicularmente ao vento, representando os flancos laterais do incêndio.</div></div>
+      <div class="alt" onclick="answer(20,'C',false)"><div class="alt-letter">C</div><div>Ser a área completamente carbonizada no interior do incêndio, sem chamas ativas.</div></div>
+      <div class="alt" onclick="answer(20,'D',true)"><div class="alt-letter">D</div><div>Ser a frente mais ativa de propagação, no sentido do vento ou ladeira acima, com maior velocidade e intensidade de chamas.</div></div>
+      <div class="alt" onclick="answer(20,'E',false)"><div class="alt-letter">E</div><div>Representar qualquer extremidade do incêndio que avance sobre área já queimada (área fria).</div></div>
+    </div>
+    <div class="feedback" id="q20-fb"></div>
+  </div>
+
+  <!-- RESULT PANEL -->
+  <div class="result-panel" id="result-panel">
+    <div class="result-emoji" id="r-emoji">🎖</div>
+    <div class="result-score" id="r-score"></div>
+    <div class="result-label" id="r-label"></div>
+    <div class="result-sub" id="r-sub"></div>
+    <div class="result-detail">
+      <div class="result-stat"><div class="big" style="color:#27ae60" id="r-correct"></div><div class="small">Corretas</div></div>
+      <div class="result-stat"><div class="big" style="color:#e74c3c" id="r-wrong"></div><div class="small">Erradas</div></div>
+      <div class="result-stat"><div class="big" style="color:#f39c12" id="r-pct"></div><div class="small">Aproveitamento</div></div>
+    </div>
+
+    <!-- FRAGILITY SECTION -->
+    <div class="fragility-wrap" id="fragility-wrap" style="display:none">
+      <div class="fragility-title">📋 Análise de Desempenho</div>
+
+      <div class="fragility-title" style="color:#e74c3c; margin-top:0">❌ Questões Erradas</div>
+      <div class="wrong-list" id="wrong-list"></div>
+
+      <hr class="divider">
+
+      <div class="fragility-title">📊 Fragilidade por Matéria</div>
+      <div class="subject-radar" id="subject-radar"></div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-retry" onclick="retryQuiz()">🔄 Refazer Simulado</button>
+      <a class="btn-email" id="btn-email" href="#">📧 Mandar pro Desenvolvedor</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>📚 Simulado CBMPA 2025 · Caderno Vidas Alheias · 20 Questões</p>
+  <p style="margin-top:6px">Boa sorte no provão! 🔥</p>
+</footer>
+
+<script>
+const subjectMap = {
+  1: 'Instrução Militar', 2: 'Instrução Militar',
+  3: 'Defesa Civil',      4: 'Defesa Civil',
+  5: 'APH',              6: 'APH',
+  7: 'Salv. Terrestre',  8: 'Salv. Terrestre',
+  9: 'OP Perigosos',    10: 'OP Perigosos',
+  11: 'Aquático',        12: 'Aquático',
+  13: 'Salv. em Altura', 14: 'Salv. em Altura',
+  15: 'Salv. Veicular',  16: 'Salv. Veicular',
+  17: 'TMI',             18: 'TMI',
+  19: 'Inc. Florestal',  20: 'Inc. Florestal',
+};
+
+const qTexts = {
+  1: 'Meia Volta Volver — apoios do giro',
+  2: 'Hierarquia militar — afirmativas',
+  3: 'Fase de Resposta na Defesa Civil',
+  4: 'NUDEC — atuação comunitária',
+  5: 'Sequência SBV em PCR',
+  6: 'Triagem START — classificação Vermelho',
+  7: 'Sistema Z (3:1) — afirmativa incorreta',
+  8: 'Nó para fixação em suportes cilíndricos',
+  9: 'Painel X33 + ONU 1203',
+  10: 'EPI Nível A — características',
+  11: 'Princípio ARRE — primeira ação',
+  12: 'Afogamento Grau 4 (Szpilman)',
+  13: 'Síndrome do Arnês — conduta',
+  14: 'NR-35 — altura mínima',
+  15: 'Veículo elétrico — gerenciamento de energia',
+  16: 'Estabilização do veículo acidentado',
+  17: 'Sinais de Backdraft',
+  18: 'Agente extintor contraindicado — Classe C',
+  19: 'Mudança de vento em incêndio florestal',
+  20: 'Cabeça do incêndio florestal',
+};
+
+const feedbacks = {
+  1: { correct: 'B', text: 'Na meia volta volver, o giro de 180° é feito sobre o <strong>calcanhar direito</strong> e a <strong>ponta do pé esquerdo</strong>, em dois tempos precisos.' },
+  2: { correct: 'C', text: 'I, II e III estão corretas. O Aspirante já pode ter subordinados conforme a estrutura da tropa — a afirmativa IV está incorreta.' },
+  3: { correct: 'D', text: 'A fase de <strong>Resposta</strong> é a ação imediata após o desastre: socorro, busca, resgate e atendimento às vítimas. Prevenção e preparação são anteriores ao evento.' },
+  4: { correct: 'C', text: 'O NUDEC atua na base comunitária (bairros e comunidades) de forma voluntária, realizando ações preventivas, alertas e primeiros socorros junto à população local.' },
+  5: { correct: 'B', text: 'A sequência correta do SBV atual (AHA) é: segurança → responsividade → acionar socorro → compressões (30:2) → DEA. A sequência C-A-B prioriza compressões antes das ventilações.' },
+  6: { correct: 'D', text: 'Na triagem START, VERMELHO indica necessidade imediata: FR > 30/min, TEC > 2s (perfusão comprometida) ou ausência de resposta a comandos. Vítima que não respira após abertura de vias = PRETA (óbito).' },
+  7: { correct: 'D', text: 'Para aumentar de 3:1 para 6:1 é necessário combinar dois sistemas ou adicionar polias adequadas — não basta adicionar apenas uma polia fixa. O sistema composto requer configuração correta e corda adicional.' },
+  8: { correct: 'C', text: 'A <strong>Volta do Fiel</strong> (dois meios-balancins) é ideal para fixação em cilindros. Distribui a carga ao longo do suporte, é seguro sob carga e permite desfazimento relativamente fácil.' },
+  9: { correct: 'C', text: 'ONU 1203 = Gasolina (Classe 3 – líquido inflamável). O "X" antes do número de risco indica reação violenta com água — água NUNCA deve ser usada para extinguir este produto.' },
+  10: { correct: 'B', text: 'EPI Nível A = roupa totalmente encapsulada (incluindo SCBA interno), oferecendo máxima proteção dérmica e respiratória. É o mais protetor e mais restritivo dos quatro níveis.' },
+  11: { correct: 'C', text: 'O princípio ARRE prioriza: <strong>Alcançar</strong> (estender objeto, corda, sem entrar na água) como primeira opção — menor risco para o socorrista. Entrar na água é o último recurso.' },
+  12: { correct: 'D', text: 'Grau 4 de Szpilman: edema pulmonar agudo grave, hipoxemia intensa, vítima <strong>inconsciente mas com pulso</strong>. Requer IOT e UTI. Grau 5 = apneia sem PCR; Grau 6 = PCR.' },
+  13: { correct: 'D', text: 'Na síndrome do arnês, deitar imediatamente pode causar colapso circulatório (sangue represado nos membros retorna ao coração de uma vez). Mantenha a vítima semi-sentada por ~30 min e acione SAMU.' },
+  14: { correct: 'B', text: 'A NR-35 define trabalho em altura como qualquer atividade realizada <strong>acima de 2,0 metros</strong> do nível inferior onde haja risco de queda com lesão.' },
+  15: { correct: 'D', text: 'Em veículos elétricos: desconecte primeiro o cabo negativo da bateria auxiliar de 12V (desativa sistemas de controle) e consulte o Emergency Response Guide do fabricante antes de qualquer corte estrutural.' },
+  16: { correct: 'B', text: 'Estabilização correta: cunhas nas rodas + escoras rígidas nos pontos estruturais (soleira/longarina) + teste empurrando o veículo. Nunca dependa do freio de mão ou câmbio como única estabilização.' },
+  17: { correct: 'B', text: 'Fumaça pulsante e oleosa + janelas escurecidas + calor sem chamas = sinais clássicos de <strong>Backdraft</strong>. Não abra portas ou janelas sem ventilação controlada — a entrada de O₂ provoca explosão.' },
+  18: { correct: 'C', text: 'Água é condutora de eletricidade — seu uso em equipamentos elétricos energizados cria risco de eletrocussão para o bombeiro. Para Classe C: CO₂ ou PQS são os agentes indicados.' },
+  19: { correct: 'C', text: 'Mudança repentina do vento é emergência de segurança. A ação imediata é acionar a rota de fuga pré-definida em direção à zona de segurança. NUNCA recue morro acima — o fogo sobe mais rápido que humanos.' },
+  20: { correct: 'D', text: 'A <strong>cabeça</strong> do incêndio florestal é a frente mais ativa: avança no sentido do vento ou ladeira acima, com maior velocidade de propagação e intensidade de chamas. É a frente de maior perigo.' },
+};
+
+let answered = {};
+let correct = 0;
+let wrong = 0;
+const total = 20;
+
+function answer(qn, letter, isCorrect) {
+  if (answered[qn]) return;
+  answered[qn] = { letter, isCorrect };
+
+  const block = document.getElementById('q' + qn);
+  const fb = document.getElementById('q' + qn + '-fb');
+  const status = document.getElementById('q' + qn + '-status');
+  const alts = block.querySelectorAll('.alt');
+
+  // Disable all alts
+  alts.forEach(a => a.classList.add('disabled'));
+
+  // Find the clicked alt and correct alt
+  const correctLetter = feedbacks[qn].correct;
+  alts.forEach(a => {
+    const ltr = a.querySelector('.alt-letter').textContent;
+    if (ltr === letter && !isCorrect) a.classList.add('wrong');
+    if (ltr === correctLetter) a.classList.add('correct');
+  });
+
+  if (isCorrect) {
+    correct++;
+    status.textContent = '✅';
+    fb.className = 'feedback show correct-fb';
+    fb.innerHTML = '<span class="fb-icon">✅</span><div><strong>Correto!</strong> ' + feedbacks[qn].text + '</div>';
+    block.classList.add('answered');
+  } else {
+    wrong++;
+    status.textContent = '❌';
+    fb.className = 'feedback show wrong-fb';
+    fb.innerHTML = '<span class="fb-icon">❌</span><div><strong>Errou.</strong> ' + feedbacks[qn].text + '</div>';
+    block.classList.add('answered');
+  }
+
+  updateScore();
+
+  if (Object.keys(answered).length === total) {
+    setTimeout(showResult, 800);
+  }
+}
+
+function updateScore() {
+  const done = Object.keys(answered).length;
+  const pct = done > 0 ? Math.round((correct / done) * 100) : 0;
+  document.getElementById('sc-correct').textContent = correct;
+  document.getElementById('sc-wrong').textContent = wrong;
+  document.getElementById('sc-pct').textContent = pct + '%';
+  document.getElementById('sc-rem').textContent = total - done;
+  document.getElementById('progress-bar').style.width = ((done / total) * 100) + '%';
+}
+
+function showResult() {
+  const pct = Math.round((correct / total) * 100);
+  const panel = document.getElementById('result-panel');
+  document.getElementById('r-correct').textContent = correct;
+  document.getElementById('r-wrong').textContent = wrong;
+  document.getElementById('r-pct').textContent = pct + '%';
+  document.getElementById('r-score').textContent = correct + '/20';
+
+  let emoji, label, sub;
+  if (pct >= 90) { emoji='🏆'; label='Excelente! Aprovado com distinção!'; sub='Você está mais que pronto para o provão. Parabéns!'; }
+  else if (pct >= 70) { emoji='🎖'; label='Muito bom! Aprovado!'; sub='Revise os pontos errados e estará 100% pronto.'; }
+  else if (pct >= 50) { emoji='📚'; label='Boa tentativa — ainda dá tempo!'; sub='Foque nas matérias que errou e refaça o simulado.'; }
+  else { emoji='💪'; label='Precisa reforçar os estudos.'; sub='Volte ao resumão, revise com calma e tente de novo!'; }
+
+  document.getElementById('r-emoji').textContent = emoji;
+  document.getElementById('r-label').textContent = label;
+  document.getElementById('r-sub').textContent = sub;
+
+  // --- FRAGILITY ANALYSIS ---
+  const wrongNums = Object.keys(answered).filter(k => !answered[k].isCorrect).map(Number);
+
+  if (wrongNums.length > 0) {
+    document.getElementById('fragility-wrap').style.display = 'block';
+
+    // Wrong questions list
+    const wrongList = document.getElementById('wrong-list');
+    wrongList.innerHTML = wrongNums.map(n => `
+      <div class="wrong-item">
+        <div class="wrong-num">${n}</div>
+        <div class="wrong-info">
+          <strong>${qTexts[n]}</strong>
+          <span>${subjectMap[n]} &middot; Você marcou ${answered[n].letter} &middot; Correta: ${feedbacks[n].correct}</span>
+        </div>
+      </div>
+    `).join('');
+
+    // Subject fragility
+    const subjects = {};
+    for (let i = 1; i <= 20; i++) {
+      const s = subjectMap[i];
+      if (!subjects[s]) subjects[s] = { total: 0, correct: 0 };
+      subjects[s].total++;
+      if (answered[i] && answered[i].isCorrect) subjects[s].correct++;
+    }
+    const icons = {
+      'Instrução Militar':'🎖','Defesa Civil':'🏘','APH':'🚑',
+      'Salv. Terrestre':'⛰','OP Perigosos':'☣','Aquático':'🌊',
+      'Salv. em Altura':'🧗','Salv. Veicular':'🚗','TMI':'🔥','Inc. Florestal':'🌲'
+    };
+    const radar = document.getElementById('subject-radar');
+    radar.innerHTML = Object.entries(subjects).map(([s, d]) => {
+      const spct = Math.round((d.correct / d.total) * 100);
+      const color = spct === 100 ? '#27ae60' : spct === 50 ? '#f1c40f' : '#e74c3c';
+      const tagClass = spct === 100 ? 'tag-ok' : spct === 50 ? 'tag-warn' : 'tag-danger';
+      const tagText = spct === 100 ? '✅ Dominado' : spct === 50 ? '⚠️ Atenção' : '❌ Frágil';
+      return `
+        <div class="radar-row">
+          <div class="radar-label">${icons[s] || ''} ${s}</div>
+          <div class="radar-bar-wrap"><div class="radar-bar" style="width:${spct}%;background:${color}"></div></div>
+          <span class="radar-tag ${tagClass}">${tagText}</span>
+        </div>`;
+    }).join('');
+  } else {
+    document.getElementById('fragility-wrap').style.display = 'block';
+    document.getElementById('wrong-list').innerHTML = '<p style="color:#27ae60;text-align:center;padding:10px">🎉 Nenhuma questão errada!</p>';
+    document.getElementById('subject-radar').innerHTML = '<p style="color:#27ae60;text-align:center;padding:10px">✅ Todas as matérias dominadas!</p>';
+  }
+
+  // --- EMAIL BUTTON ---
+  const now = new Date();
+  const date = now.toLocaleDateString('pt-BR') + ' ' + now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+  let emailBody = `RESULTADO DO SIMULADO CBMPA\n${date}\n\nPONTUACAO: ${correct}/20 (${pct}%)\nCertas: ${correct} | Erradas: ${wrong}\n\n`;
+
+  if (wrongNums.length > 0) {
+    emailBody += `QUESTOES ERRADAS:\n`;
+    wrongNums.forEach(n => {
+      emailBody += `• Q${n} [${subjectMap[n]}] - ${qTexts[n]}\n  Marcou: ${answered[n].letter} | Correta: ${feedbacks[n].correct}\n`;
+    });
+    emailBody += `\nFRAGILIDADE POR MATERIA:\n`;
+    const subjects2 = {};
+    for (let i = 1; i <= 20; i++) {
+      const s = subjectMap[i];
+      if (!subjects2[s]) subjects2[s] = { total: 0, correct: 0 };
+      subjects2[s].total++;
+      if (answered[i] && answered[i].isCorrect) subjects2[s].correct++;
+    }
+    Object.entries(subjects2).forEach(([s, d]) => {
+      const spct = Math.round((d.correct / d.total) * 100);
+      const status = spct === 100 ? 'DOMINADO' : spct === 50 ? 'ATENCAO' : 'FRAGIL';
+      emailBody += `• ${s}: ${d.correct}/${d.total} - ${status}\n`;
+    });
+  } else {
+    emailBody += `GABARITO PERFEITO! Todas as questoes corretas.\n`;
+  }
+
+  const subjectLine = encodeURIComponent(`Simulado CBMPA - ${correct}/20 (${pct}%) - ${date}`);
+  const bodyLine = encodeURIComponent(emailBody);
+  document.getElementById('btn-email').href = `mailto:callegaribi@gmail.com?subject=${subjectLine}&body=${bodyLine}`;
+
+  panel.classList.add('show');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function retryQuiz() {
+  answered = {}; correct = 0; wrong = 0;
+  document.querySelectorAll('.alt').forEach(a => {
+    a.classList.remove('correct','wrong','selected','disabled');
+  });
+  document.querySelectorAll('.feedback').forEach(f => {
+    f.className = 'feedback';
+    f.innerHTML = '';
+  });
+  document.querySelectorAll('.q-status').forEach(s => s.textContent = '');
+  document.querySelectorAll('.question-block').forEach(b => b.classList.remove('answered'));
+  document.getElementById('result-panel').classList.remove('show');
+  document.getElementById('fragility-wrap').style.display = 'none';
+  document.getElementById('wrong-list').innerHTML = '';
+  document.getElementById('subject-radar').innerHTML = '';
+  document.getElementById('btn-email').href = '#';
+  updateScore();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
