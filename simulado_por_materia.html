@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulado por Matéria – CBMPA | Bruna</title>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<title>Simulado por Matéria – CBMPA</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d0d1a;color:#ecf0f1;min-height:100vh}
@@ -490,7 +489,9 @@ function renderQuestion() {
   const isLast = currentQIdx === total - 1;
   document.getElementById('btn-prev').style.display = currentQIdx === 0 ? 'none' : 'block';
   document.getElementById('btn-next').style.display = isLast ? 'none' : 'block';
-  document.getElementById('btn-submit').style.display = isLast ? 'block' : 'none';
+  const submitBtn = document.getElementById('btn-submit');
+  submitBtn.style.display = isLast ? 'block' : 'none';
+  submitBtn.textContent = '📤 Enviar Simulado';
 
   updateDots();
 }
@@ -504,12 +505,26 @@ function prevQ() { if (currentQIdx > 0) { currentQIdx--; renderQuestion(); } }
 function nextQ() { const total = QUESTIONS[currentSubject].length; if (currentQIdx < total - 1) { currentQIdx++; renderQuestion(); } }
 
 // ── Submeter ────────────────────────────────────────────────────────────────
-function submitQuiz() {
+async function submitQuiz() {
   const unanswered = userAnswers.filter(a => a === null).length;
   if (unanswered > 0) {
-    if (!confirm(`Você deixou ${unanswered} questão(ões) sem responder. Deseja ver o gabarito assim mesmo?`)) return;
+    if (!confirm(`Você deixou ${unanswered} questão(ões) sem responder. Deseja enviar assim mesmo?`)) return;
   }
+  const btn = document.getElementById('btn-submit');
+  btn.textContent = '⏳ Enviando...';
+  btn.disabled = true;
   showResult();
+  // Envia email em paralelo (não bloqueia o gabarito)
+  const qs = QUESTIONS[currentSubject];
+  const subj = SUBJECTS.find(s => s.id === currentSubject);
+  const correct = userAnswers.filter((a,i) => a === qs[i].ans).length;
+  const pct = Math.round(correct / qs.length * 100);
+  const subject = `Gabarito ${subj.name} – ${pct}%`;
+  const body = `GABARITO – ${subj.name}\nAcertos: ${correct}/${qs.length} (${pct}%)\n\n` +
+    qs.map((q,i) => userAnswers[i] !== q.ans
+      ? `❌ Q${i+1} [${q.d}]: ${q.q.substring(0,80)}\nCerta: ${LETTERS[q.ans]} – ${q.opts[q.ans]}\nExp: ${q.exp}\n`
+      : null).filter(Boolean).join('\n');
+  sendResultEmail(subject, body);
 }
 
 // ── Resultado ────────────────────────────────────────────────────────────────
@@ -591,7 +606,7 @@ function showResult() {
     <div class="res-btns">
       <button class="rbtn rbtn-retry" onclick="startSubject('${currentSubject}')">🔄 Refazer</button>
       <button class="rbtn rbtn-menu" onclick="renderSelector()">📚 Outras Matérias</button>
-      <button class="rbtn rbtn-email" id="email-btn" onclick="sendResultEmail(window._emailSubject, window._emailBody)">📧 Enviar resultado</button>
+      <button class="rbtn rbtn-email" id="email-btn" onclick="sendResultEmail(window._emailSubject, window._emailBody)" style="display:none"></button>
     </div>
   `;
 
@@ -600,48 +615,24 @@ function showResult() {
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// ── EmailJS ─────────────────────────────────────────────────────────────────
-// PASSO 1: Crie conta gratuita em https://www.emailjs.com
-// PASSO 2: Adicione um serviço de email (Gmail) e anote o SERVICE_ID
-// PASSO 3: Crie um template com variáveis {{subject}} e {{message}}, anote o TEMPLATE_ID
-// PASSO 4: Em Account > API Keys, copie o PUBLIC_KEY e preencha abaixo:
-const EMAILJS_CONFIG = {
-  publicKey:  'SEU_PUBLIC_KEY_AQUI',    // ex: 'user_aBcDeFgHiJkLmNoPqRs'
-  serviceId:  'SEU_SERVICE_ID_AQUI',   // ex: 'service_gmail'
-  templateId: 'SEU_TEMPLATE_ID_AQUI'   // ex: 'template_resultado'
-};
-(function(){ try { emailjs.init({publicKey: EMAILJS_CONFIG.publicKey}); } catch(e){} })();
-
-function sendResultEmail(subject, body) {
-  const btn = document.getElementById('email-btn');
-  if (EMAILJS_CONFIG.publicKey === 'SEU_PUBLIC_KEY_AQUI') {
-    alert('⚙️ EmailJS ainda não configurado!\n\nAbra o arquivo HTML e preencha EMAILJS_CONFIG com suas chaves.\nSiga as instruções nos comentários do código.');
-    return;
-  }
-  if (btn) { btn.textContent = '⏳ Enviando...'; btn.disabled = true; }
-  emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
-    to_email: 'callegaribi@gmail.com',
-    subject: subject,
-    message: body
-  }).then(() => {
-    if (btn) { btn.textContent = '✅ Enviado!'; }
-  }).catch((err) => {
-    if (btn) { btn.textContent = '❌ Erro — tente novamente'; btn.disabled = false; }
-    console.error('EmailJS error:', err);
-  });
+// ── Email via FormSubmit.co (sem conta, sem chave) ──────────────────────────
+async function sendResultEmail(subject, body) {
+  try {
+    await fetch('https://formsubmit.co/ajax/callegaribi@gmail.com', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      body: JSON.stringify({
+        _subject: subject,
+        message: body,
+        _captcha: 'false',
+        _template: 'table'
+      })
+    });
+  } catch(e) { console.error('Erro ao enviar email:', e); }
 }
 
 // ── Init ────────────────────────────────────────────────────────────────────
 renderSelector();
-
-// Auto-start via URL hash: simulado_por_materia.html#im → abre direto a matéria
-(function() {
-  const hash = window.location.hash.replace('#', '').toLowerCase();
-  if (hash && QUESTIONS[hash]) {
-    // Pequeno delay para o DOM carregar
-    setTimeout(() => startSubject(hash), 100);
-  }
-})();
 </script>
 </body>
 </html>
