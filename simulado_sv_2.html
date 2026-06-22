@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulado 2 – Salv. Veicular | CBMPA</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d0d1a;color:#ecf0f1;min-height:100vh}
+header{background:linear-gradient(135deg,#1f2937,#374151);padding:16px 20px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+header h1{font-size:16px;font-weight:900}
+header p{font-size:11px;opacity:.7;margin-top:2px}
+.progress-bar{height:4px;background:rgba(255,255,255,.1)}
+.progress-fill{height:100%;background:linear-gradient(90deg,#4b5563,#9ca3af);transition:width .3s;width:0}
+
+#quiz-area{max-width:720px;margin:0 auto;padding:20px 16px 100px}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.quiz-header h2{font-size:16px;font-weight:800}
+.q-counter{font-size:12px;background:rgba(255,255,255,.1);padding:5px 12px;border-radius:20px}
+
+.q-card{background:#16213e;border-radius:18px;padding:24px 20px;border:2px solid rgba(255,255,255,.07)}
+.diff-badge{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:12px}
+.db-f{background:rgba(46,204,113,.2);color:#2ecc71;border:1px solid rgba(46,204,113,.3)}
+.db-m{background:rgba(243,156,18,.2);color:#f39c12;border:1px solid rgba(243,156,18,.3)}
+.db-d{background:rgba(231,76,60,.2);color:#e74c3c;border:1px solid rgba(231,76,60,.3)}
+
+.fragil-badge{display:inline-block;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;margin-left:8px}
+
+.q-text{font-size:15px;font-weight:600;line-height:1.55;margin-bottom:18px}
+.options{display:flex;flex-direction:column;gap:9px}
+.opt{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.09);border-radius:12px;padding:13px 16px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:all .2s;font-size:14px;line-height:1.4}
+.opt:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2)}
+.opt.selected{background:rgba(75,85,99,.35);border-color:#6b7280}
+.opt-l{font-weight:800;min-width:18px;color:#9ca3af;flex-shrink:0}
+
+.nav-btns{display:flex;gap:10px;margin-top:18px}
+.btn-prev,.btn-next,.btn-submit{flex:1;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s}
+.btn-prev{background:rgba(255,255,255,.08);color:white}
+.btn-prev:hover{background:rgba(255,255,255,.15)}
+.btn-next{background:#374151;color:white}
+.btn-next:hover{background:#1f2937}
+.btn-submit{background:#c0392b;color:white;display:none}
+.btn-submit:hover{background:#a93226}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed}
+
+.q-dots{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:.2s;cursor:pointer}
+.dot.answered{background:#4b5563}
+.dot.current{background:#9ca3af;transform:scale(1.3)}
+
+#result-area{display:none;max-width:720px;margin:0 auto;padding:20px 16px 80px}
+.res-header{text-align:center;padding:28px 20px;background:#16213e;border-radius:20px;margin-bottom:24px}
+.res-emoji{font-size:60px;margin-bottom:12px}
+.res-score{font-size:44px;font-weight:900}
+.res-pct{font-size:17px;color:rgba(255,255,255,.6);margin-bottom:16px}
+.res-msg{font-size:15px;font-weight:700;padding:12px 18px;background:rgba(255,255,255,.06);border-radius:12px}
+
+.res-by-diff{display:flex;gap:10px;margin:20px 0;flex-wrap:wrap}
+.rbd-card{flex:1;min-width:120px;border-radius:14px;padding:16px 12px;text-align:center}
+.rbd-f{background:rgba(46,204,113,.12);border:2px solid rgba(46,204,113,.3)}
+.rbd-m{background:rgba(243,156,18,.12);border:2px solid rgba(243,156,18,.3)}
+.rbd-d{background:rgba(231,76,60,.12);border:2px solid rgba(231,76,60,.3)}
+.rbd-title{font-size:11px;font-weight:800;margin-bottom:6px}
+.rbd-num{font-size:26px;font-weight:900;line-height:1}
+.rbd-sub{font-size:10px;opacity:.65;margin-top:3px}
+
+.gab-section{margin-top:10px}
+.gab-q{background:#16213e;border-radius:14px;padding:18px 16px;margin-bottom:12px;border-left:4px solid transparent}
+.gab-q.gq-ok{border-left-color:#2ecc71}
+.gab-q.gq-err{border-left-color:#e74c3c}
+.gab-q.gq-skip{border-left-color:#95a5a6}
+.gab-num{font-size:11px;font-weight:800;color:rgba(255,255,255,.45);margin-bottom:6px}
+.gab-qtext{font-size:14px;font-weight:600;line-height:1.5;margin-bottom:10px}
+.gab-ans{font-size:13px;padding:8px 12px;border-radius:8px;margin-bottom:5px}
+.gab-ans.ga-ok{background:rgba(46,204,113,.15);color:#2ecc71}
+.gab-ans.ga-err{background:rgba(231,76,60,.15);color:#e74c3c}
+.gab-ans.ga-correct{background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.25);color:#a8e6c3}
+.gab-exp{font-size:12px;line-height:1.5;color:rgba(255,255,255,.6);margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+
+.res-btns{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.rbtn{flex:1;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:block}
+.rbtn-retry{background:#374151;color:white}
+.rbtn-menu{background:rgba(255,255,255,.08);color:white;border:2px solid rgba(255,255,255,.15)}
+
+.intro-card{max-width:720px;margin:40px auto;padding:0 16px}
+.intro-box{background:#16213e;border-radius:20px;padding:32px 24px;border:2px solid rgba(255,255,255,.08);text-align:center}
+.intro-icon{font-size:56px;margin-bottom:16px}
+.intro-title{font-size:22px;font-weight:900;margin-bottom:8px}
+.intro-sub{font-size:14px;color:rgba(255,255,255,.6);margin-bottom:8px;line-height:1.6}
+.intro-focus{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;padding:14px 16px;margin:16px 0;font-size:13px;color:#fca5a5;line-height:1.6}
+.btn-start{width:100%;padding:16px;background:#c0392b;border:none;border-radius:14px;font-size:16px;font-weight:800;color:white;cursor:pointer;margin-top:8px;transition:.2s}
+.btn-start:hover{background:#a93226}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🚗 Simulado 2 – Salvamento Veicular</h1>
+  <p id="hd-sub">Foco nos pontos frágeis · 20 questões</p>
+</header>
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<!-- Tela de intro -->
+<div class="intro-card" id="intro-area">
+  <div class="intro-box">
+    <div class="intro-icon">🚗</div>
+    <div class="intro-title">Simulado 2 – Salv. Veicular</div>
+    <div class="intro-sub">20 questões · Fácil / Moderado / Difícil<br>Gabarito comentado apenas ao enviar</div>
+    <div class="intro-focus">
+      🎯 <strong>Foco nos pontos frágeis do Simulado 1:</strong><br>
+      Nomenclatura de ferramentas hidráulicas · Especificações técnicas (pressão, tensão) ·
+      Procedimentos elétricos · Veículos elétricos/blindados · Técnicas avançadas de extração
+    </div>
+    <button class="btn-start" onclick="startQuiz()">▶ Iniciar Simulado 2</button>
+  </div>
+</div>
+
+<!-- Quiz -->
+<div id="quiz-area" style="display:none">
+  <div class="quiz-header">
+    <h2>🚗 Salvamento Veicular — Simulado 2</h2>
+    <div class="q-counter" id="q-counter">1 / 20</div>
+  </div>
+  <div class="q-dots" id="q-dots"></div>
+  <div class="q-card" id="q-card">
+    <div class="diff-badge" id="diff-badge"></div>
+    <div class="q-text" id="q-text"></div>
+    <div class="options" id="options"></div>
+    <div class="nav-btns">
+      <button class="btn-prev" id="btn-prev" onclick="prevQ()">← Anterior</button>
+      <button class="btn-next" id="btn-next" onclick="nextQ()">Próxima →</button>
+      <button class="btn-submit" id="btn-submit" onclick="submitQuiz()">📤 Enviar Simulado</button>
+    </div>
+  </div>
+</div>
+
+<!-- Resultado -->
+<div id="result-area"></div>
+
+<script>
+const LETTERS = ['A','B','C','D','E'];
+const DIFF_LABEL = {F:'🟢 Fácil', M:'🟡 Moderado', D:'🔴 Difícil'};
+const DIFF_CLS   = {F:'db-f', M:'db-m', D:'db-d'};
+
+// ── 20 questões focadas nos pontos frágeis ──────────────────────────────────
+const QUESTIONS = [
+  // ── NOMENCLATURA E IDENTIFICAÇÃO DE FERRAMENTAS ──
+  {d:'F', q:'O espalhador hidráulico (spreader) e o alicate de corte (cutter) são fabricados pela marca que criou o termo popular "Jaws of Life". Qual é essa marca?', opts:['Weber Rescue','Holmatro','Hurst Jaws of Life','Lukas','Genesis'], ans:2, exp:'"Jaws of Life" é marca registrada da Hurst — ficou tão popular que virou sinônimo de todos os equipamentos hidráulicos de resgate veicular.'},
+  {d:'F', q:'A ferramenta hidráulica que combina as funções de espalhador E cortador em um único equipamento é chamada de:', opts:['Spreader','Cutter','Ram (cilindro)','Combi-tool','Extensor'], ans:3, exp:'Combi-tool (ferramenta combinada): realiza tanto a abertura (spread) quanto o corte, economizando tempo de troca de ferramentas.'},
+  {d:'F', q:'O cilindro hidráulico de extensão (ram) é utilizado principalmente para:', opts:['Cortar postes de aço','Abrir espaços entre porta e carroceria','Criar espaço empurrando painel ou coluna do volante','Remover vidros','Elevar o veículo'], ans:2, exp:'Ram (cilindro de extensão): empurra estruturas — usado no dash roll para afastar painel/coluna do volante das pernas da vítima.'},
+  {d:'F', q:'O código de cores dos postes de veículos varia por fabricante, mas a convenção geral é: poste A (dianteiro), B (central) e C (traseiro). Em um SUV de 4 portas com coluna extra, o quarto pilar traseiro é chamado de:', opts:['Poste D','Poste E','Haste traseira','Contraforte','Coluna de teto'], ans:0, exp:'Em SUVs e minivans com 4 portas, o pilar mais recuado após o C é chamado poste D. Identificar corretamente os postes é essencial para o planejamento do acesso.'},
+  {d:'F', q:'O sistema hidráulico das ferramentas de resgate opera com fluido transmitido por mangueiras de alta pressão. A unidade de potência (power unit) pode ser:', opts:['Apenas a bomba manual','Apenas motor a gasolina','Motor a gasolina, elétrico (bateria) ou acionado pela tomada de força do veículo','Apenas pneumática','Motor diesel exclusivamente'], ans:2, exp:'A power unit pode ser: motor a gasolina (mais comum), elétrica a bateria (silenciosa, usada em ambientes fechados) ou acoplada à tomada de força (PTO) da viatura.'},
+  {d:'F', q:'O "glass management" (gerenciamento de vidros) em resgate veicular preconiza que o para-brisa deve ser removido:', opts:['Quebrando com o alicate hidráulico','Cortando com a ferramenta Combi','Marcando, cortando com faca apropriada e dobrando para fora ou removendo em peça única','Com marreta','Usando o cutter diretamente'], ans:2, exp:'Para-brisa (vidro laminado): marcar o contorno, cortar com faca de resgate/saw e dobrar/remover inteiro — evita fragmentos e protege a vítima.'},
+
+  // ── SISTEMAS ELÉTRICOS E BATERIA ──
+  {d:'M', q:'Ao desconectar a bateria de um veículo convencional, o cabo negativo é retirado primeiro. Isso ocorre porque:', opts:['O negativo tem mais voltagem','Retirar o positivo primeiro pode criar arco elétrico ao tocar na carroceria (aterrada)','O negativo é mais fácil de acessar','É convenção sem fundamento técnico','O positivo deve ser preservado para o airbag'], ans:1, exp:'A carroceria é o condutor negativo (massa). Retirar o positivo primeiro + tocar acidentalmente na carroceria = curto-circuito. Retirar o negativo primeiro quebra o circuito com segurança.'},
+  {d:'M', q:'Em veículo híbrido, além da bateria de 12V convencional, existe o pacote de alta tensão (HV battery). Onde ele geralmente está localizado?', opts:['No compartimento do motor','No porta-malas ou sob o assoalho/banco traseiro','Atrás do painel','No teto','No estepe'], ans:1, exp:'Pacote HV (alta tensão) de híbridos: geralmente sob o banco traseiro ou no porta-malas — importante para não cortar estruturas próximas.'},
+  {d:'M', q:'O sistema "Smart Key" (chave de proximidade) de veículos modernos pode manter circuitos ativos mesmo com a chave fora do contato. Qual o risco específico para o resgate?', opts:['Acionar o freio de mão automaticamente','Disparar airbags adicionais ou manter sistema elétrico ativo mesmo após remover a chave convencional','Travar todas as portas','Acionar o alarme sonoro','Não há risco específico'], ans:1, exp:'Com Smart Key, o veículo permanece "acordado" enquanto a chave estiver no raio de alcance — airbags e sistemas ativos. Mover a chave para além de 5 metros ou usar "modo de serviço" do fabricante.'},
+  {d:'M', q:'Após desligar um veículo elétrico, os capacitores do sistema de inversão podem reter carga perigosa. O indicador visual mais confiável de que o sistema descarregou é:', opts:['A luz do painel apagada','O tempo decorrido (5-10 min conforme fabricante)','O medidor de tensão portátil (multímetro) marcando < 60V no sistema HV','A temperatura do capô','O motor de partida desligado'], ans:2, exp:'O único indicador confiável é a medição direta com multímetro no sistema HV mostrando < 60V. Luzes apagadas e tempo decorrido são indicativos, mas não garantia.'},
+  {d:'M', q:'O "rescue sheet" (ficha de resgate) dos veículos modernos, acessível pelo QR code na carroceria, indica ao bombeiro:', opts:['O histórico de manutenção','Localização dos sistemas de alta tensão, airbags, estruturas de corte seguro e pontos de ancoragem','O nome do proprietário','O peso do veículo','O tipo de combustível apenas'], ans:1, exp:'Rescue sheet: mapa do veículo com locais de corte seguros, posição de baterias HV, airbags, tanques de combustível e pontos de ancoragem — essencial em veículos modernos.'},
+  {d:'M', q:'A tensão do sistema de alta tensão em veículos elétricos modernos (BEV) tipicamente opera entre:', opts:['12-24V','48-96V','200-400V (podendo chegar a 800V em modelos recentes)','800-1200V','Acima de 1200V'], ans:2, exp:'Veículos elétricos BEV: sistema HV entre 300-400V (maioria) a 800V (modelos de alta performance como Porsche Taycan, Hyundai Ioniq 6). Letalmente perigoso sem EPI adequado.'},
+
+  // ── ESPECIFICAÇÕES TÉCNICAS ──
+  {d:'M', q:'A força de espalhamento de um spreader hidráulico de resgate de médio porte é tipicamente de:', opts:['1-5 toneladas','10-15 toneladas','20-32 toneladas','50-80 toneladas','Acima de 100 toneladas'], ans:2, exp:'Spreaders de médio porte: força de espalhamento de 20-32 toneladas (kN equivalente). Cutters de corte: até 60-80 toneladas de força cortante.'},
+  {d:'M', q:'As mangueiras de alta pressão das ferramentas hidráulicas de resgate são geralmente codificadas por cores. A convenção mais comum é:', opts:['Vermelho = retorno, Azul = pressão','Amarelo = pressão, Verde = retorno','Vermelho = pressão, Preto/Azul = retorno','Laranja = pressão, Cinza = retorno','Sem cor padrão — varia por fabricante'], ans:0, exp:'Convenção mais comum: Vermelho = linha de pressão (alta), Azul ou Preto = linha de retorno (baixa). Sempre verificar o manual do fabricante específico.'},
+  {d:'D', q:'O aço de alta resistência (AHSS – Advanced High Strength Steel) usado em postes B modernos difere do aço convencional porque:', opts:['É mais macio e fácil de cortar','Tem resistência à tração acima de 1000 MPa, podendo danificar ou desviar o cutter convencional','É mais leve apenas','Não conduz eletricidade','É transparente a raios X para diagnóstico'], ans:1, exp:'AHSS (aço de ultra-alta resistência): resistência > 1000 MPa — pode danificar as lâminas do cutter convencional. Requer ferramentas de resgate de nova geração (Super S, S-Class) com lâminas especiais.'},
+  {d:'D', q:'Em veículo blindado Classe III-A (proteção balística contra pistola .44 Magnum), a espessura típica das portas é de:', opts:['5-8 mm','15-25 mm','50-80 mm','100-150 mm','Mais de 200 mm'], ans:1, exp:'Blindagem Classe III-A: adiciona 15-25 mm de aço balístico nas portas — peso adicional de 300-600 kg no veículo. Spreader/cutter convencional pode não ter força suficiente.'},
+  {d:'D', q:'A técnica "side-out" (abertura lateral) em veículo capotado com vítima encarcerada consiste em:', opts:['Cortar todos os postes e remover o teto lateralmente','Remover toda a lateral do veículo (portas + postes A, B, C) como uma única peça','Cortar apenas as portas','Criar abertura no assoalho','Remover o para-brisa lateralmente'], ans:1, exp:'Side-out: remove toda a lateral (portas + postes A, B, C) em sequência, criando abertura máxima — indicada em veículos capotados com múltiplas vítimas ou vítima crítica.'},
+  {d:'D', q:'O protocolo "HAVEN" de gerenciamento de cena em acidente veicular define as etapas:', opts:['Hazards, Access, Vehicle stability, Emergency care, Number of patients','Hydraulics, Airbags, Vents, Extrication, Notifications','Hazards, Assess, Ventilate, Extricate, No movement','Hydraulics, Access, Victims, Entry, Neutralize','Nenhuma das alternativas — HAVEN não é protocolo reconhecido'], ans:0, exp:'HAVEN: Hazards (riscos), Access (acesso), Vehicle stability (estabilização), Emergency care (cuidados médicos), Number of patients (número de vítimas) — framework de gestão de cena veicular.'},
+  {d:'D', q:'Em acidente com veículo a GNV (Gás Natural Veicular), o cilindro de alta pressão (200-250 bar) está localizado geralmente:', opts:['No compartimento do motor','No banco traseiro','No porta-malas ou sob o veículo (carroceria)','No painel','No tejadilho (teto)'], ans:2, exp:'Cilindro GNV: geralmente no porta-malas ou sob a carroceria. Em caso de incêndio, deve-se resfriar o cilindro com água — NUNCA tentar aliviar manualmente. Isolar 50 m de raio.'},
+  {d:'D', q:'A norma que regulamenta os Equipamentos de Proteção Individual (EPI) utilizados por bombeiros em resgate veicular no Brasil é a:', opts:['ABNT NBR 15.052','NR-6 combinada com NFPA 1971','NR-35','ABNT NBR 14.725','OSHA 1910.120'], ans:1, exp:'No Brasil: EPI de bombeiro segue a NR-6 (obrigatoriedade de EPI) combinada com a NFPA 1971 (norma americana amplamente adotada para roupas de proteção estrutural de bombeiros).'},
+  {d:'D', q:'Em extração de vítima com suspeita de lesão de coluna em veículo normal (não capotado), a melhor sequência de extração é:', opts:['Remover rapidamente sem considerar coluna','KED → colar cervical → prancha longa → extração em bloco','Colar → prancha → KED','Apenas colar cervical e puxar','Extração rápida sempre que houver coluna'], ans:1, exp:'Extração controlada: 1-Colar cervical, 2-KED (se tempo/condição permitem), 3-Prancha longa posicionada, 4-Extração em bloco com mínimo de 4 socorristas mantendo alinhamento.'},
+];
+
+// ── Estado ──────────────────────────────────────────────────────────────────
+let currentQIdx = 0;
+let userAnswers = new Array(QUESTIONS.length).fill(null);
+
+// ── Iniciar ─────────────────────────────────────────────────────────────────
+function startQuiz() {
+  document.getElementById('intro-area').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'block';
+  buildDots();
+  renderQuestion();
+}
+
+// ── Dots ────────────────────────────────────────────────────────────────────
+function buildDots() {
+  const dotsDiv = document.getElementById('q-dots');
+  dotsDiv.innerHTML = '';
+  QUESTIONS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' current' : '');
+    d.id = 'dot-' + i;
+    d.onclick = () => { currentQIdx = i; renderQuestion(); };
+    dotsDiv.appendChild(d);
+  });
+}
+
+function updateDots() {
+  QUESTIONS.forEach((_, i) => {
+    const d = document.getElementById('dot-' + i);
+    if (!d) return;
+    d.className = 'dot' + (userAnswers[i] !== null ? ' answered' : '') + (i === currentQIdx ? ' current' : '');
+  });
+}
+
+// ── Render questão ──────────────────────────────────────────────────────────
+function renderQuestion() {
+  const q = QUESTIONS[currentQIdx];
+  const total = QUESTIONS.length;
+
+  document.getElementById('q-counter').textContent = (currentQIdx + 1) + ' / ' + total;
+  document.getElementById('prog').style.width = ((currentQIdx + 1) / total * 100) + '%';
+
+  const dbEl = document.getElementById('diff-badge');
+  dbEl.className = 'diff-badge ' + DIFF_CLS[q.d];
+  dbEl.textContent = DIFF_LABEL[q.d];
+
+  document.getElementById('q-text').textContent = q.q;
+
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const div = document.createElement('div');
+    div.className = 'opt' + (userAnswers[currentQIdx] === i ? ' selected' : '');
+    div.innerHTML = `<span class="opt-l">${LETTERS[i]}</span><span>${o}</span>`;
+    div.onclick = () => { userAnswers[currentQIdx] = i; renderQuestion(); };
+    optsDiv.appendChild(div);
+  });
+
+  const isLast = currentQIdx === total - 1;
+  document.getElementById('btn-prev').style.display = currentQIdx === 0 ? 'none' : 'block';
+  document.getElementById('btn-next').style.display = isLast ? 'none' : 'block';
+  const subBtn = document.getElementById('btn-submit');
+  subBtn.style.display = isLast ? 'block' : 'none';
+  subBtn.textContent = '📤 Enviar Simulado';
+
+  updateDots();
+}
+
+function prevQ() { if (currentQIdx > 0) { currentQIdx--; renderQuestion(); } }
+function nextQ() { if (currentQIdx < QUESTIONS.length - 1) { currentQIdx++; renderQuestion(); } }
+
+// ── Submeter ─────────────────────────────────────────────────────────────────
+async function submitQuiz() {
+  const unanswered = userAnswers.filter(a => a === null).length;
+  if (unanswered > 0) {
+    if (!confirm(`Você deixou ${unanswered} questão(ões) sem responder. Deseja enviar assim mesmo?`)) return;
+  }
+  const btn = document.getElementById('btn-submit');
+  btn.textContent = '⏳ Enviando...';
+  btn.disabled = true;
+  showResult();
+  // Envia email
+  const correct = userAnswers.filter((a,i) => a === QUESTIONS[i].ans).length;
+  const pct = Math.round(correct / QUESTIONS.length * 100);
+  const body = `GABARITO – Salv. Veicular (Simulado 2)\nAcertos: ${correct}/20 (${pct}%)\n\n` +
+    QUESTIONS.map((q,i) => userAnswers[i] !== q.ans
+      ? `❌ Q${i+1} [${q.d}]: ${q.q.substring(0,80)}\nCerta: ${LETTERS[q.ans]} – ${q.opts[q.ans]}\nExp: ${q.exp}\n`
+      : null).filter(Boolean).join('\n');
+  try {
+    await fetch('https://formsubmit.co/ajax/callegaribi@gmail.com', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify({_subject:`Gabarito Salv. Veicular Simulado 2 – ${pct}%`, message: body, _captcha:'false', _template:'table'})
+    });
+  } catch(e){}
+}
+
+// ── Resultado ────────────────────────────────────────────────────────────────
+function showResult() {
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('result-area').style.display = 'block';
+
+  let correct = 0;
+  const diffStats = {F:{c:0,e:0,t:0},M:{c:0,e:0,t:0},D:{c:0,e:0,t:0}};
+  QUESTIONS.forEach((q,i) => {
+    diffStats[q.d].t++;
+    if (userAnswers[i] === q.ans) { correct++; diffStats[q.d].c++; }
+    else diffStats[q.d].e++;
+  });
+
+  const pct = Math.round(correct / QUESTIONS.length * 100);
+  let emoji, msg;
+  if (pct >= 90) { emoji='🏆'; msg='Domínio total dos pontos frágeis!'; }
+  else if (pct >= 75) { emoji='✅'; msg='Boa recuperação! Revise os erros restantes.'; }
+  else if (pct >= 60) { emoji='⚠️'; msg='Ainda há pontos a reforçar.'; }
+  else { emoji='🚨'; msg='Revisar o conteúdo de Salv. Veicular com atenção!'; }
+
+  function rbd(key, label, cls) {
+    const {c,e,t} = diffStats[key];
+    const p = t ? Math.round(c/t*100) : 0;
+    return `<div class="rbd-card rbd-${cls}"><div class="rbd-title">${label}</div><div class="rbd-num">${c}/${t}</div><div class="rbd-sub">${p}% acertos</div></div>`;
+  }
+
+  const gabHtml = QUESTIONS.map((q,i) => {
+    const ua = userAnswers[i];
+    const ok = ua === q.ans;
+    const skip = ua === null;
+    const cls = skip ? 'gq-skip' : ok ? 'gq-ok' : 'gq-err';
+    const icon = skip ? '⬜' : ok ? '✅' : '❌';
+    let ansHtml = '';
+    if (!skip && !ok) {
+      ansHtml += `<div class="gab-ans ga-err">❌ Sua resposta: ${LETTERS[ua]} – ${q.opts[ua]}</div>`;
+      ansHtml += `<div class="gab-ans ga-correct">✅ Correta: ${LETTERS[q.ans]} – ${q.opts[q.ans]}</div>`;
+    } else if (ok) {
+      ansHtml += `<div class="gab-ans ga-ok">✅ ${LETTERS[ua]} – ${q.opts[ua]}</div>`;
+    } else {
+      ansHtml += `<div class="gab-ans ga-err">⬜ Não respondida – Correta: ${LETTERS[q.ans]} – ${q.opts[q.ans]}</div>`;
+    }
+    return `<div class="gab-q ${cls}">
+      <div class="gab-num">${icon} Questão ${i+1} · <span class="diff-badge ${DIFF_CLS[q.d]}" style="padding:2px 8px;font-size:9px">${DIFF_LABEL[q.d]}</span></div>
+      <div class="gab-qtext">${q.q}</div>
+      ${ansHtml}
+      ${!ok ? `<div class="gab-exp">💡 ${q.exp}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  document.getElementById('result-area').innerHTML = `
+    <div class="res-header">
+      <div class="res-emoji">${emoji}</div>
+      <div class="res-score">${correct}/20</div>
+      <div class="res-pct">${pct}% · 🚗 Salv. Veicular – Simulado 2</div>
+      <div class="res-msg">${msg}</div>
+      <div class="res-by-diff">
+        ${rbd('F','🟢 Fácil','f')}${rbd('M','🟡 Moderado','m')}${rbd('D','🔴 Difícil','d')}
+      </div>
+    </div>
+    <div class="gab-section">
+      <div style="font-size:15px;font-weight:800;margin-bottom:14px">📋 Gabarito Comentado</div>
+      ${gabHtml}
+    </div>
+    <div class="res-btns">
+      <button class="rbtn rbtn-retry" onclick="location.reload()">🔄 Refazer</button>
+      <a class="rbtn rbtn-menu" href="index.html">🏠 Hub principal</a>
+    </div>
+  `;
+
+  document.getElementById('hd-sub').textContent = 'Salv. Veicular Simulado 2 – Gabarito';
+  document.getElementById('prog').style.width = '100%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
