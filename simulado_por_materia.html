@@ -631,8 +631,13 @@ async function sendResultEmail(subject, body) {
   } catch(e) { console.error('Erro ao enviar email:', e); }
 }
 
-// ── Init ────────────────────────────────────────────────────────────────────
-renderSelector();
+// ── Init: se vier com hash (#im, #dc…) vai direto, sem mostrar o seletor ───
+const _hash = window.location.hash.replace('#','').toLowerCase();
+if (_hash && QUESTIONS[_hash]) {
+  startSubject(_hash);
+} else {
+  renderSelector();
+}
 </script>
 </body>
 </html>
