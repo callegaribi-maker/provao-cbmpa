@@ -3,18 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simulados | CBMPA</title>
+<title>Simulados | CBMPA Bruna</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
-    background: #0f0f1a;
+    background: #0f172a;
     min-height: 100vh;
     color: white;
     display: flex;
     flex-direction: column;
   }
 
+  /* HEADER */
   .top-bar {
     display: flex;
     align-items: center;
@@ -24,69 +25,91 @@
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
   .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
     color: rgba(255,255,255,0.6);
     text-decoration: none;
     font-size: 0.9rem;
     transition: color 0.2s;
-    background: none;
-    border: none;
-    cursor: pointer;
   }
   .back-btn:hover { color: white; }
-  .top-bar-title { font-size: 0.9rem; color: rgba(255,255,255,0.4); margin-left: auto; }
+  .top-bar-title {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.4);
+    margin-left: auto;
+  }
 
+  /* SUBJECT HERO */
   .subject-hero {
     padding: 2.5rem 1.5rem 2rem;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .subject-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    opacity: 0.15;
   }
   .subject-emoji { font-size: 4rem; display: block; margin-bottom: 0.8rem; }
-  .subject-name  { font-size: 1.8rem; font-weight: 900; }
-  .subject-sub   { font-size: 0.9rem; color: rgba(255,255,255,0.5); margin-top: 0.4rem; }
+  .subject-name {
+    font-size: 1.8rem;
+    font-weight: 900;
+    position: relative;
+  }
+  .subject-sub {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.5);
+    margin-top: 0.4rem;
+    position: relative;
+  }
 
+  /* CONTENT */
   .content {
     flex: 1;
     max-width: 640px;
     width: 100%;
     margin: 0 auto;
-    padding: 0.5rem 1rem 3rem;
+    padding: 1.5rem 1rem 3rem;
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
   }
 
+  /* SECTION */
   .section-label {
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: rgba(255,255,255,0.4);
-    margin-bottom: 0.7rem;
+    margin-bottom: 0.6rem;
   }
 
+  /* CARDS */
   .sim-card {
     display: flex;
     align-items: center;
     gap: 1.2rem;
-    padding: 1.4rem;
+    padding: 1.4rem 1.4rem;
     border-radius: 18px;
     text-decoration: none;
     color: white;
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
     overflow: hidden;
-    margin-bottom: 0.8rem;
   }
-  .sim-card:last-child { margin-bottom: 0; }
   .sim-card:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(0,0,0,0.4); }
   .sim-card-icon { font-size: 2.4rem; flex-shrink: 0; }
   .sim-card-body { flex: 1; }
   .sim-card-body h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 0.25rem; }
-  .sim-card-body p  { font-size: 0.82rem; opacity: 0.8; line-height: 1.4; }
+  .sim-card-body p { font-size: 0.82rem; opacity: 0.8; line-height: 1.4; }
   .sim-card-arrow { font-size: 1.3rem; flex-shrink: 0; opacity: 0.6; }
 
-  .card-inicial   { background: linear-gradient(135deg, #1e3a5f, #2563eb); }
-  .card-avancado  { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
-  .card-avancado2 { background: linear-gradient(135deg, #713f12, #d97706); }
-  .card-avancado3 { background: linear-gradient(135deg, #14532d, #16a34a); }
+  .card-inicial { background: linear-gradient(135deg, #1e3a5f, #2563eb); }
+  .card-avancado { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
+  .card-avancado-2 { background: linear-gradient(135deg, #713f12, #d97706); }
+  .card-avancado-3 { background: linear-gradient(135deg, #14532d, #16a34a); }
   .card-em-breve {
     background: rgba(255,255,255,0.04);
     border: 1px dashed rgba(255,255,255,0.15);
@@ -96,58 +119,71 @@
   .card-em-breve:hover { transform: none; box-shadow: none; }
 
   .badge-new {
-    position: absolute; top: 0.8rem; right: 0.8rem;
-    background: #f59e0b; color: #000;
-    font-size: 0.65rem; font-weight: 800;
-    padding: 0.2rem 0.5rem; border-radius: 50px;
-    text-transform: uppercase; letter-spacing: 0.05em;
+    position: absolute;
+    top: 0.8rem; right: 0.8rem;
+    background: #f59e0b;
+    color: #000;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 0.2rem 0.5rem;
+    border-radius: 50px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
-  footer { text-align: center; padding: 1.5rem; color: rgba(255,255,255,0.3); font-size: 0.8rem; }
+  footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: rgba(255,255,255,0.3);
+    font-size: 0.8rem;
+  }
 </style>
 </head>
 <body>
 
 <div class="top-bar">
   <a class="back-btn" href="index.html">← Voltar ao hub</a>
-  <span class="top-bar-title">CBMPA · Vidas Alheias</span>
+  <span class="top-bar-title">CBMPA · Bruna</span>
 </div>
 
-<div class="subject-hero">
+<div class="subject-hero" id="hero">
   <span class="subject-emoji" id="hero-emoji">📋</span>
   <div class="subject-name" id="hero-name">Carregando...</div>
-  <div class="subject-sub" id="hero-sub"></div>
+  <div class="subject-sub" id="hero-sub">20 questões por simulado · Gabarito comentado ao final</div>
 </div>
 
-<div class="content" id="content"></div>
+<div class="content" id="content">
+  <!-- gerado por JS -->
+</div>
 
-<footer>Provão CBMPA · Caderno Vidas Alheias</footer>
+<footer>CBMPA 2026 · Bruna</footer>
 
 <script>
 const SUBJECTS = {
-  im:  { name: 'Instrução Militar',  emoji: '🎖️', sub: 'Posições · Marcha · Formaturas · Continência' },
-  dc:  { name: 'Defesa Civil',       emoji: '🛡️', sub: 'SINPDEC · Fases · COBRADE · Lei 12.608' },
-  aph: { name: 'APH',                emoji: '🚑', sub: 'RCP · Cadeia de sobrevivência · Triagem START · Trauma' },
-  st:  { name: 'Salv. Terrestre',    emoji: '⛏️', sub: 'Espaço confinado · Escoramento · Buscas · ICS' },
-  op:  { name: 'OP Perigosos',       emoji: '☢️', sub: 'NFPA 704 · ONU · BLEVE · ERG · Zonas' },
-  aq:  { name: 'Aquático',           emoji: '🌊', sub: 'Szpilman · Rip current · RCP afogamento' },
-  sa:  { name: 'Salv. em Altura',    emoji: '🧗', sub: 'NR-35 · Nós · Polipasto · Ancoragem' },
-  sv:  { name: 'Salv. Veicular',     emoji: '🚗', sub: 'Jaws of Life · Dash roll · Veículo elétrico · HAVEN' },
-  tmi: { name: 'TMI',                emoji: '🔥', sub: 'Flashover · Backdraft · Classes · Espuma · BLEVE' },
-  if:  { name: 'Inc. Florestal',     emoji: '🌲', sub: 'FMA · LCES · Aceiro · Contrafogo · NDVI' },
+  im: { name: 'Instrução Militar', emoji: '🎖️', sub: 'Posições · Marcha · Formaturas · Continência' },
+  dc: { name: 'Defesa Civil', emoji: '🛡️', sub: 'SINPDEC · Fases · COBRADE · Lei 12.608' },
+  aph: { name: 'APH', emoji: '🚑', sub: 'RCP · Cadeia de sobrevivência · Triagem START · Trauma' },
+  st: { name: 'Salv. Terrestre', emoji: '⛏️', sub: 'Espaço confinado · Escoramento · Buscas · ICS' },
+  op: { name: 'OP Perigosos', emoji: '☢️', sub: 'NFPA 704 · ONU · BLEVE · ERG · Zonas' },
+  aq: { name: 'Aquático', emoji: '🌊', sub: 'Szpilman · Rip current · RCP afogamento' },
+  sa: { name: 'Salv. em Altura', emoji: '🧗', sub: 'NR-35 · Nós · Polipasto · Ancoragem' },
+  sv: { name: 'Salv. Veicular', emoji: '🚗', sub: 'Jaws of Life · Dash roll · Veículo elétrico' },
+  tmi: { name: 'TMI', emoji: '🔥', sub: 'Flashover · Backdraft · Classes · Espuma · BLEVE' },
+  if: { name: 'Inc. Florestal', emoji: '🌲', sub: 'FMA · LCES · Aceiro · Contrafogo · NDVI' },
 };
 
-// Adicionar aqui novos simulados aprofundados por matéria
+// Simulados avançados por matéria
 const ADVANCED = {
   sv: [
     {
       title: 'Simulado 2 – Pontos Frágeis',
-      desc: 'Foco em nomenclatura, desconexão de bateria, pressão hidráulica, veículos elétricos e HAVEN',
+      desc: 'Foco em nomenclatura, bateria, pressão hidráulica, veículos elétricos e HAVEN',
       url: 'simulado_sv_2.html',
       isNew: true,
       colorClass: 'card-avancado',
     }
   ],
+  // outras matérias: adicionar aqui conforme novos simulados forem criados
 };
 
 function render() {
@@ -158,14 +194,14 @@ function render() {
     return;
   }
 
-  document.title = subject.name + ' | CBMPA';
+  document.title = subject.name + ' | CBMPA Bruna';
   document.getElementById('hero-emoji').textContent = subject.emoji;
   document.getElementById('hero-name').textContent = subject.name;
   document.getElementById('hero-sub').textContent = subject.sub;
 
   const content = document.getElementById('content');
   const advanced = ADVANCED[code] || [];
-  const colors = ['card-avancado', 'card-avancado2', 'card-avancado3'];
+
   let html = '';
 
   // Simulado Inicial
@@ -183,8 +219,8 @@ function render() {
     </div>
   `;
 
-  // Simulados Aprofundados
-  html += `<div><div class="section-label">🎯 Simulados Aprofundados</div>`;
+  // Simulados Avançados
+  html += `<div><div class="section-label">🎯 Simulados Avançados</div>`;
 
   if (advanced.length === 0) {
     html += `
@@ -192,15 +228,16 @@ function render() {
         <span class="sim-card-icon">⏳</span>
         <div class="sim-card-body">
           <h3>Em breve</h3>
-          <p>Simulados aprofundados serão adicionados conforme os seus erros forem analisados</p>
+          <p>Simulados avançados serão adicionados aqui conforme seus erros forem analisados</p>
         </div>
       </div>
     `;
   } else {
+    const colors = ['card-avancado', 'card-avancado-2', 'card-avancado-3'];
     advanced.forEach((sim, i) => {
       const colorClass = sim.colorClass || colors[i % colors.length];
       html += `
-        <a class="sim-card ${colorClass}" href="${sim.url}">
+        <a class="sim-card ${colorClass}" href="${sim.url}" style="margin-bottom: 0.8rem; display: flex;">
           ${sim.isNew ? '<span class="badge-new">Novo</span>' : ''}
           <span class="sim-card-icon">🎯</span>
           <div class="sim-card-body">
@@ -211,12 +248,13 @@ function render() {
         </a>
       `;
     });
+    // Em breve para próximos
     html += `
-      <div class="sim-card card-em-breve">
+      <div class="sim-card card-em-breve" style="margin-top: 0.4rem;">
         <span class="sim-card-icon">⏳</span>
         <div class="sim-card-body">
           <h3>Mais simulados a caminho</h3>
-          <p>Continue treinando para ganhar novos desafios aqui</p>
+          <p>Continue errando (com sabedoria) para ganhar novos desafios aqui</p>
         </div>
       </div>
     `;

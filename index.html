@@ -3,298 +3,297 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>🔥 Provão CBMPA | Bruna</title>
+<title>Provão CBMPA – Vidas Alheias</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; min-height: 100vh; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0f0f1a;
+    color: #ecf0f1;
+    min-height: 100vh;
+  }
 
-  header {
-    background: linear-gradient(135deg, #1a0a00, #7c2d12, #991b1b);
-    color: white;
-    text-align: center;
-    padding: 3rem 1rem 4rem;
-    position: relative;
-    overflow: hidden;
-  }
-  header::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: radial-gradient(ellipse at 50% 0%, rgba(239,68,68,0.3) 0%, transparent 70%);
-  }
-  .stars { position: absolute; inset: 0; overflow: hidden; }
-  .star { position: absolute; width: 3px; height: 3px; background: white; border-radius: 50%; animation: twinkle 2s infinite; }
-  @keyframes twinkle { 0%,100% { opacity: 0.2; } 50% { opacity: 0.9; } }
-  header h1 { font-size: 2.5rem; font-weight: 900; position: relative; text-shadow: 0 2px 20px rgba(239,68,68,0.5); }
-  header h1 span { color: #fca5a5; }
-  header p { font-size: 1.1rem; opacity: 0.85; margin-top: 0.6rem; position: relative; }
-  .exam-date {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: linear-gradient(135deg, #b91c1c, #991b1b);
-    border: 2px solid #fca5a5;
-    color: white;
-    font-weight: 700;
-    padding: 0.6rem 1.5rem;
+  /* ── SCREENS ── */
+  .screen { display: none; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px 60px; }
+  .screen.active { display: flex; }
+
+  /* ── HEADER ── */
+  .badge {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
     border-radius: 50px;
-    margin-top: 1rem;
-    font-size: 1rem;
-    position: relative;
-    box-shadow: 0 4px 20px rgba(185,28,28,0.5);
+    padding: 6px 18px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
   }
+  h1 { font-size: clamp(28px, 5vw, 52px); font-weight: 900; text-align: center; line-height: 1.1; margin-bottom: 10px; }
+  h1 span { color: #f39c12; }
+  .subtitle { color: rgba(255,255,255,0.6); margin-bottom: 50px; text-align: center; font-size: 16px; }
 
-  .countdown-bar {
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-    padding: 1rem;
+  /* ── MAIN CARDS ── */
+  .cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .card {
+    background: #16213e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 40px 36px;
+    width: 280px;
     text-align: center;
-    color: white;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   }
-  .countdown-bar .label { font-size: 0.8rem; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.1em; }
-  .countdown-bar .days { font-size: 2rem; font-weight: 900; color: #fbbf24; line-height: 1; }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+  .card-resumao:hover { border-color: #e74c3c; }
+  .card-geral:hover   { border-color: #f39c12; }
+  .card-materia:hover { border-color: #2980b9; }
+  .icon { font-size: 64px; margin-bottom: 20px; display: block; }
+  .card h2 { font-size: 22px; font-weight: 800; margin-bottom: 10px; }
+  .card p { font-size: 14px; color: rgba(255,255,255,0.55); margin: 0; }
+  .tag {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+  }
+  .tag-red    { background: #c0392b; }
+  .tag-orange { background: #e67e22; }
+  .tag-blue   { background: #2980b9; }
 
-  .grid-resumos {
+  /* ── BACK BAR ── */
+  .back-bar {
+    width: 100%;
     max-width: 900px;
-    margin: 0 auto;
-    padding: 1rem 0.8rem;
+    margin-bottom: 32px;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: white; }
+
+  /* ── SCREEN TITLE ── */
+  .screen-title {
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .screen-title span { color: #f39c12; }
+  .screen-sub {
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+
+  /* ── GERAL CARDS ── */
+  .geral-cards { display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; }
+  .geral-card {
+    background: #16213e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+    padding: 36px 32px;
+    width: 300px;
+    text-align: center;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  }
+  .geral-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+  .geral-card.g1:hover { border-color: #f39c12; }
+  .geral-card.g2:hover { border-color: #e74c3c; }
+  .geral-card h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+  .geral-card p { font-size: 13px; color: rgba(255,255,255,0.55); }
+
+  /* ── SUBJECT GRID ── */
+  .subject-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.7rem;
+    gap: 12px;
+    width: 100%;
+    max-width: 720px;
   }
   @media (min-width: 600px) {
-    .grid-resumos { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .subject-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
   }
-  .grid-wide {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 1rem 0.8rem 2rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 1rem;
+  @media (min-width: 900px) {
+    .subject-grid { grid-template-columns: repeat(5, 1fr); }
   }
-
-  .subject-card {
-    border-radius: 20px;
-    padding: 1.8rem;
+  .subj-card {
+    border-radius: 16px;
+    padding: 18px 14px;
     color: white;
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    position: relative;
-    overflow: hidden;
-    transition: transform 0.25s, box-shadow 0.25s;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    gap: 6px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
   }
-  .subject-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.4); }
-  .subject-card::before { content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; border-radius: 50%; background: rgba(255,255,255,0.07); }
-  .subject-card .emoji { font-size: 2.5rem; }
-  .subject-card h2 { font-size: 1.3rem; font-weight: 800; }
-  .subject-card .topics { font-size: 0.82rem; opacity: 0.85; line-height: 1.6; }
-  .subject-card .arrow { margin-top: auto; font-size: 0.85rem; opacity: 0.8; display: flex; align-items: center; gap: 0.3rem; }
+  .subj-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
+  .subj-card .s-emoji { font-size: 1.8rem; }
+  .subj-card .s-name  { font-size: 0.85rem; font-weight: 800; line-height: 1.2; }
+  .subj-card .s-arrow { font-size: 0.72rem; opacity: 0.6; margin-top: auto; }
 
-  .grid-resumos .subject-card { border-radius: 14px; padding: 1rem 0.9rem; gap: 0.4rem; }
-  .grid-resumos .subject-card .emoji { font-size: 1.6rem; }
-  .grid-resumos .subject-card h2 { font-size: 0.95rem; font-weight: 800; }
-  .grid-resumos .subject-card .topics { font-size: 0.72rem; line-height: 1.4; }
-  .grid-resumos .subject-card .arrow { font-size: 0.75rem; }
-  .grid-resumos .subject-card .tag { font-size: 0.65rem; padding: 0.15rem 0.45rem; }
+  .s-im  { background: linear-gradient(135deg, #1e3a5f, #2563eb); }
+  .s-dc  { background: linear-gradient(135deg, #14532d, #16a34a); }
+  .s-aph { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
+  .s-st  { background: linear-gradient(135deg, #78350f, #d97706); }
+  .s-op  { background: linear-gradient(135deg, #713f12, #f59e0b); }
+  .s-aq  { background: linear-gradient(135deg, #0c4a6e, #0369a1); }
+  .s-sa  { background: linear-gradient(135deg, #4c1d95, #7c3aed); }
+  .s-sv  { background: linear-gradient(135deg, #1f2937, #4b5563); }
+  .s-tmi { background: linear-gradient(135deg, #7c2d12, #ea580c); }
+  .s-if  { background: linear-gradient(135deg, #14532d, #15803d); }
 
-  .tag {
-    display: inline-block;
-    background: rgba(255,255,255,0.2);
-    border-radius: 50px;
-    padding: 0.2rem 0.6rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-  }
-
-  /* Cores por matéria */
-  .card-im { background: linear-gradient(135deg, #1e3a5f, #2563eb); }
-  .card-dc { background: linear-gradient(135deg, #14532d, #16a34a); }
-  .card-aph { background: linear-gradient(135deg, #7f1d1d, #dc2626); }
-  .card-st { background: linear-gradient(135deg, #78350f, #d97706); }
-  .card-op { background: linear-gradient(135deg, #713f12, #f59e0b); }
-  .card-aq { background: linear-gradient(135deg, #0c4a6e, #0369a1); }
-  .card-sa { background: linear-gradient(135deg, #4c1d95, #7c3aed); }
-  .card-sv { background: linear-gradient(135deg, #1f2937, #4b5563); }
-  .card-tmi { background: linear-gradient(135deg, #7c2d12, #ea580c); }
-  .card-if { background: linear-gradient(135deg, #14532d, #15803d); }
-  .card-resumo { background: linear-gradient(135deg, #1e1b4b, #4338ca); }
-  .card-provao { background: linear-gradient(135deg, #7f1d1d, #b91c1c); }
-
-  .section-title {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 2rem 1rem 0.5rem;
-    color: white;
-    font-size: 1.3rem;
-    font-weight: 800;
-  }
-  .section-title span { color: #fbbf24; }
-  .section-subtitle { max-width: 900px; margin: 0 auto; padding: 0 1rem 1rem; color: rgba(255,255,255,0.6); font-size: 0.85rem; }
-
-  footer {
-    text-align: center;
-    padding: 2rem;
-    color: rgba(255,255,255,0.4);
-    font-size: 0.85rem;
-  }
-  footer span { color: #fca5a5; }
+  footer { margin-top: 60px; color: rgba(255,255,255,0.3); font-size: 13px; text-align: center; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="stars" id="stars"></div>
-  <h1>🔥 Provão <span>CBMPA</span></h1>
-  <p>Caderno Vidas Alheias · 10 matérias · 488 páginas</p>
-  <div class="exam-date">🗓️ Prova: 14 de julho de 2026</div>
-</header>
+<!-- ══════════ TELA 1: HUB PRINCIPAL ══════════ -->
+<div class="screen active" id="screen-home">
+  <div class="badge">📚 CBMPA 2025</div>
+  <h1>Caderno <span>Vidas Alheias</span></h1>
+  <p class="subtitle">O que você quer fazer agora?</p>
 
-<div class="countdown-bar">
-  <div class="label">Dias restantes para o provão</div>
-  <div class="days" id="countdown">...</div>
+  <div class="cards">
+    <a class="card card-resumao" href="resumao_materias.html">
+      <span class="icon">📖</span>
+      <h2>Resumão das Matérias</h2>
+      <p>10 matérias · cards, tabelas e pontos quentes para o provão</p>
+      <span class="tag tag-red">Estudar agora →</span>
+    </a>
+
+    <div class="card card-geral" onclick="goTo('screen-geral')">
+      <span class="icon">🎯</span>
+      <h2>Simulado Geral</h2>
+      <p>Questões de todas as matérias misturadas — 20Q rápido ou Provão 40Q</p>
+      <span class="tag tag-orange">Fazer simulado →</span>
+    </div>
+
+    <div class="card card-materia" onclick="goTo('screen-materias')">
+      <span class="icon">📋</span>
+      <h2>Simulados por Matéria</h2>
+      <p>Escolha a matéria · Simulado Inicial ou Aprofundado com base nos seus erros</p>
+      <span class="tag tag-blue">Escolher matéria →</span>
+    </div>
+  </div>
+
+  <footer>Provão CBMPA · Caderno Vidas Alheias · 10 matérias · 488 páginas</footer>
 </div>
 
-<!-- RESUMÃO -->
-<div class="section-title">📖 <span>Resumão</span> das Matérias</div>
-<div class="section-subtitle">Todo o conteúdo do Caderno Vidas Alheias — cards, tabelas e pontos-chave</div>
-<div class="grid-wide">
-  <a href="resumao_materias.html" class="subject-card card-resumo">
-    <div class="emoji">📖</div>
-    <h2>Resumão Completo</h2>
-    <span class="tag">10 matérias</span>
-    <p class="topics">Instrução Militar · Defesa Civil · APH · Salv. Terrestre · OP Perigosos · Aquático · Salv. em Altura · Salv. Veicular · TMI · Inc. Florestal</p>
-    <div class="arrow">Estudar agora →</div>
-  </a>
-  <a href="simulado_provao_bombeiros.html" class="subject-card card-provao">
-    <div class="emoji">🔥</div>
-    <h2>Provão Completo – 40 Questões</h2>
-    <span class="tag">Todas as matérias</span>
-    <p class="topics">🟢 Fácil · 🟡 Moderado · 🔴 Difícil · Análise de fragilidade por nível e por matéria ao final</p>
-    <div class="arrow">Iniciar provão →</div>
-  </a>
+
+<!-- ══════════ TELA 2: SIMULADO GERAL ══════════ -->
+<div class="screen" id="screen-geral">
+  <div class="back-bar">
+    <button class="back-btn" onclick="goTo('screen-home')">← Voltar</button>
+  </div>
+
+  <div class="screen-title">🎯 Simulado <span>Geral</span></div>
+  <p class="screen-sub">Todas as matérias misturadas · Escolha o formato</p>
+
+  <div class="geral-cards">
+    <a class="geral-card g1" href="simulado_20_questoes.html">
+      <span class="icon">⚡</span>
+      <h2>Simulado Rápido – 20Q</h2>
+      <p>2 questões por matéria · Feedback imediato · Placar ao vivo</p>
+      <span class="tag tag-orange" style="margin-top:20px">Começar →</span>
+    </a>
+    <a class="geral-card g2" href="simulado_provao_bombeiros.html">
+      <span class="icon">🔥</span>
+      <h2>Provão Completo – 40Q</h2>
+      <p>Fácil · Moderado · Difícil · Análise de fragilidade por nível e por matéria</p>
+      <span class="tag tag-red" style="margin-top:20px">Iniciar provão →</span>
+    </a>
+  </div>
 </div>
 
-<!-- SIMULADOS POR MATÉRIA -->
-<div class="section-title">✏️ <span>Simulados</span> por Matéria</div>
-<div class="section-subtitle">20 questões · Fácil / Moderado / Difícil · Gabarito comentado apenas no final · Resultado enviado por e-mail</div>
-<div class="grid-resumos">
 
-  <a href="subject_menu.html#im" class="subject-card card-im">
-    <div class="emoji">🎖️</div>
-    <h2>Instrução Militar</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · Posições · Marcha · Formaturas · Continência</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
+<!-- ══════════ TELA 3: ESCOLHER MATÉRIA ══════════ -->
+<div class="screen" id="screen-materias">
+  <div class="back-bar">
+    <button class="back-btn" onclick="goTo('screen-home')">← Voltar</button>
+  </div>
 
-  <a href="subject_menu.html#dc" class="subject-card card-dc">
-    <div class="emoji">🛡️</div>
-    <h2>Defesa Civil</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · SINPDEC · Fases · COBRADE · Lei 12.608</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
+  <div class="screen-title">📋 Escolha a <span>Matéria</span></div>
+  <p class="screen-sub">Clique para ver os simulados disponíveis · Inicial e Aprofundado</p>
 
-  <a href="subject_menu.html#aph" class="subject-card card-aph">
-    <div class="emoji">🚑</div>
-    <h2>APH</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · RCP · Cadeia de sobrevivência · Triagem START · Trauma</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
-
-  <a href="subject_menu.html#st" class="subject-card card-st">
-    <div class="emoji">⛏️</div>
-    <h2>Salv. Terrestre</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · Espaço confinado · Escoramento · Buscas · ICS</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
-
-  <a href="subject_menu.html#op" class="subject-card card-op">
-    <div class="emoji">☢️</div>
-    <h2>OP Perigosos</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · NFPA 704 · ONU · BLEVE · ERG · Zonas</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
-
-  <a href="subject_menu.html#aq" class="subject-card card-aq">
-    <div class="emoji">🌊</div>
-    <h2>Aquático</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · Szpilman · Rip current · RCP afogamento</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
-
-  <a href="subject_menu.html#sa" class="subject-card card-sa">
-    <div class="emoji">🧗</div>
-    <h2>Salv. em Altura</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · NR-35 · Nós · Polipasto · Ancoragem</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
-
-  <a href="subject_menu.html#sv" class="subject-card card-sv">
-    <div class="emoji">🚗</div>
-    <h2>Salv. Veicular</h2>
-    <span class="tag">🎯 2 simulados</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · Jaws of Life · Dash roll · Veículo elétrico</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
-
-  <a href="subject_menu.html#tmi" class="subject-card card-tmi">
-    <div class="emoji">🔥</div>
-    <h2>TMI</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · Flashover · Backdraft · Classes · Espuma · BLEVE</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
-
-  <a href="subject_menu.html#if" class="subject-card card-if">
-    <div class="emoji">🌲</div>
-    <h2>Inc. Florestal</h2>
-    <span class="tag">✏️ 20 questões</span>
-    <p class="topics">🟢 6 fáceis · 🟡 8 médias · 🔴 6 difíceis · FMA · LCES · Aceiro · Contrafogo · NDVI</p>
-    <div class="arrow">Ver simulados →</div>
-  </a>
-
+  <div class="subject-grid">
+    <a href="subject_menu.html#im"  class="subj-card s-im">
+      <span class="s-emoji">🎖️</span>
+      <span class="s-name">Instrução Militar</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+    <a href="subject_menu.html#dc"  class="subj-card s-dc">
+      <span class="s-emoji">🛡️</span>
+      <span class="s-name">Defesa Civil</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+    <a href="subject_menu.html#aph" class="subj-card s-aph">
+      <span class="s-emoji">🚑</span>
+      <span class="s-name">APH</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+    <a href="subject_menu.html#st"  class="subj-card s-st">
+      <span class="s-emoji">⛏️</span>
+      <span class="s-name">Salv. Terrestre</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+    <a href="subject_menu.html#op"  class="subj-card s-op">
+      <span class="s-emoji">☢️</span>
+      <span class="s-name">OP Perigosos</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+    <a href="subject_menu.html#aq"  class="subj-card s-aq">
+      <span class="s-emoji">🌊</span>
+      <span class="s-name">Aquático</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+    <a href="subject_menu.html#sa"  class="subj-card s-sa">
+      <span class="s-emoji">🧗</span>
+      <span class="s-name">Salv. em Altura</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+    <a href="subject_menu.html#sv"  class="subj-card s-sv">
+      <span class="s-emoji">🚗</span>
+      <span class="s-name">Salv. Veicular</span>
+      <span class="s-arrow">🎯 2 simulados →</span>
+    </a>
+    <a href="subject_menu.html#tmi" class="subj-card s-tmi">
+      <span class="s-emoji">🔥</span>
+      <span class="s-name">TMI</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+    <a href="subject_menu.html#if"  class="subj-card s-if">
+      <span class="s-emoji">🌲</span>
+      <span class="s-name">Inc. Florestal</span>
+      <span class="s-arrow">Ver simulados →</span>
+    </a>
+  </div>
 </div>
-
-<footer>
-  Feito com 🔥 para a <span>Bruna</span> arrasar no Provão! • CBMPA 2026
-</footer>
 
 <script>
-// Estrelas
-const starsEl = document.getElementById('stars');
-for (let i = 0; i < 60; i++) {
-  const s = document.createElement('div');
-  s.className = 'star';
-  s.style.left = Math.random() * 100 + '%';
-  s.style.top = Math.random() * 100 + '%';
-  s.style.animationDelay = Math.random() * 3 + 's';
-  s.style.opacity = Math.random() * 0.4;
-  starsEl.appendChild(s);
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  window.scrollTo(0, 0);
 }
-
-// Countdown – 14 de julho de 2026
-function updateCountdown() {
-  const examDate = new Date('2026-07-14');
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diff = Math.ceil((examDate - today) / (1000 * 60 * 60 * 24));
-  const el = document.getElementById('countdown');
-  if (diff > 0) el.textContent = diff + (diff === 1 ? ' dia' : ' dias');
-  else if (diff === 0) el.textContent = '🎉 É hoje!';
-  else el.textContent = 'Provão já foi!';
-}
-updateCountdown();
 </script>
 </body>
 </html>
