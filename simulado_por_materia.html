@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulado por Matéria – CBMPA | Bruna</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0d0d1a;color:#ecf0f1;min-height:100vh}
+header{background:linear-gradient(135deg,#1a237e,#283593);padding:16px 20px;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+header h1{font-size:16px;font-weight:900}
+header p{font-size:11px;opacity:.7;margin-top:2px}
+.progress-bar{height:4px;background:rgba(255,255,255,.1)}
+.progress-fill{height:100%;background:linear-gradient(90deg,#3949ab,#7986cb);transition:width .3s;width:0}
+
+/* Seletor de matéria */
+#subject-select{max-width:720px;margin:0 auto;padding:28px 16px}
+.sel-title{font-size:22px;font-weight:900;margin-bottom:6px}
+.sel-sub{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:24px}
+.subject-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.subj-card{background:#16213e;border:2px solid rgba(255,255,255,.08);border-radius:16px;padding:18px 16px;cursor:pointer;transition:all .2s;text-align:center}
+.subj-card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.25)}
+.subj-card .icon{font-size:32px;margin-bottom:10px;display:block}
+.subj-card h3{font-size:14px;font-weight:800;margin-bottom:6px}
+.subj-card p{font-size:11px;color:rgba(255,255,255,.5)}
+.subj-card.done{border-color:#2ecc71}
+.subj-card.done h3{color:#2ecc71}
+
+/* Quiz */
+#quiz-area{display:none;max-width:720px;margin:0 auto;padding:20px 16px 100px}
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.quiz-header h2{font-size:16px;font-weight:800}
+.q-counter{font-size:12px;background:rgba(255,255,255,.1);padding:5px 12px;border-radius:20px}
+
+.q-card{background:#16213e;border-radius:18px;padding:24px 20px;border:2px solid rgba(255,255,255,.07)}
+.diff-badge{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:4px 12px;font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:12px}
+.db-f{background:rgba(46,204,113,.2);color:#2ecc71;border:1px solid rgba(46,204,113,.3)}
+.db-m{background:rgba(243,156,18,.2);color:#f39c12;border:1px solid rgba(243,156,18,.3)}
+.db-d{background:rgba(231,76,60,.2);color:#e74c3c;border:1px solid rgba(231,76,60,.3)}
+
+.q-text{font-size:15px;font-weight:600;line-height:1.55;margin-bottom:18px}
+.options{display:flex;flex-direction:column;gap:9px}
+.opt{background:rgba(255,255,255,.04);border:2px solid rgba(255,255,255,.09);border-radius:12px;padding:13px 16px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:all .2s;font-size:14px;line-height:1.4}
+.opt:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2)}
+.opt.selected{background:rgba(57,73,171,.25);border-color:#5c6bc0}
+.opt-l{font-weight:800;min-width:18px;color:#7986cb;flex-shrink:0}
+
+.nav-btns{display:flex;gap:10px;margin-top:18px}
+.btn-prev,.btn-next,.btn-submit{flex:1;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s}
+.btn-prev{background:rgba(255,255,255,.08);color:white}
+.btn-prev:hover{background:rgba(255,255,255,.15)}
+.btn-next{background:#3949ab;color:white}
+.btn-next:hover{background:#283593}
+.btn-submit{background:#c0392b;color:white;display:none}
+.btn-submit:hover{background:#a93226}
+
+/* Dots de progresso */
+.q-dots{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:16px}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:.2s;cursor:pointer}
+.dot.answered{background:#3949ab}
+.dot.current{background:#7986cb;transform:scale(1.3)}
+
+/* Resultado */
+#result-area{display:none;max-width:720px;margin:0 auto;padding:20px 16px 80px}
+.res-header{text-align:center;padding:28px 20px;background:#16213e;border-radius:20px;margin-bottom:24px}
+.res-emoji{font-size:60px;margin-bottom:12px}
+.res-score{font-size:44px;font-weight:900}
+.res-pct{font-size:17px;color:rgba(255,255,255,.6);margin-bottom:16px}
+.res-msg{font-size:15px;font-weight:700;padding:12px 18px;background:rgba(255,255,255,.06);border-radius:12px}
+
+.res-by-diff{display:flex;gap:10px;margin:20px 0;flex-wrap:wrap}
+.rbd-card{flex:1;min-width:120px;border-radius:14px;padding:16px 12px;text-align:center}
+.rbd-f{background:rgba(46,204,113,.12);border:2px solid rgba(46,204,113,.3)}
+.rbd-m{background:rgba(243,156,18,.12);border:2px solid rgba(243,156,18,.3)}
+.rbd-d{background:rgba(231,76,60,.12);border:2px solid rgba(231,76,60,.3)}
+.rbd-title{font-size:11px;font-weight:800;margin-bottom:6px}
+.rbd-num{font-size:26px;font-weight:900;line-height:1}
+.rbd-sub{font-size:10px;opacity:.65;margin-top:3px}
+
+/* Gabarito */
+.gab-section{margin-top:10px}
+.gab-q{background:#16213e;border-radius:14px;padding:18px 16px;margin-bottom:12px;border-left:4px solid transparent}
+.gab-q.gq-ok{border-left-color:#2ecc71}
+.gab-q.gq-err{border-left-color:#e74c3c}
+.gab-q.gq-skip{border-left-color:#95a5a6}
+.gab-num{font-size:11px;font-weight:800;color:rgba(255,255,255,.45);margin-bottom:6px}
+.gab-qtext{font-size:14px;font-weight:600;line-height:1.5;margin-bottom:10px}
+.gab-ans{font-size:13px;padding:8px 12px;border-radius:8px;margin-bottom:5px}
+.gab-ans.ga-ok{background:rgba(46,204,113,.15);color:#2ecc71}
+.gab-ans.ga-err{background:rgba(231,76,60,.15);color:#e74c3c}
+.gab-ans.ga-correct{background:rgba(46,204,113,.1);border:1px solid rgba(46,204,113,.25);color:#a8e6c3}
+.gab-exp{font-size:12px;line-height:1.5;color:rgba(255,255,255,.6);margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+
+.res-btns{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+.rbtn{flex:1;padding:14px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:block}
+.rbtn-retry{background:#3949ab;color:white}
+.rbtn-menu{background:rgba(255,255,255,.08);color:white;border:2px solid rgba(255,255,255,.15)}
+.rbtn-email{background:rgba(255,255,255,.06);color:white;border:2px solid rgba(255,255,255,.12)}
+
+.filter-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.ftab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:2px solid rgba(255,255,255,.12);background:transparent;color:rgba(255,255,255,.6);transition:.2s}
+.ftab.active{background:#3949ab;border-color:#3949ab;color:white}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📋 Simulado por Matéria – CBMPA</h1>
+  <p id="hd-sub">Escolha uma matéria para iniciar</p>
+</header>
+<div class="progress-bar"><div class="progress-fill" id="prog"></div></div>
+
+<!-- Seletor de matéria -->
+<div id="subject-select">
+  <div class="sel-title">Escolha a Matéria</div>
+  <div class="sel-sub">20 questões por matéria · Fácil, Moderado e Difícil · Gabarito apenas no final</div>
+  <div class="subject-grid" id="subject-grid"></div>
+</div>
+
+<!-- Quiz -->
+<div id="quiz-area">
+  <div class="quiz-header">
+    <h2 id="quiz-title"></h2>
+    <div class="q-counter" id="q-counter">1 / 20</div>
+  </div>
+  <div class="q-dots" id="q-dots"></div>
+  <div class="q-card" id="q-card">
+    <div class="diff-badge" id="diff-badge"></div>
+    <div class="q-text" id="q-text"></div>
+    <div class="options" id="options"></div>
+    <div class="nav-btns">
+      <button class="btn-prev" id="btn-prev" onclick="prevQ()">← Anterior</button>
+      <button class="btn-next" id="btn-next" onclick="nextQ()">Próxima →</button>
+      <button class="btn-submit" id="btn-submit" onclick="submitQuiz()">✅ Ver Gabarito</button>
+    </div>
+  </div>
+</div>
+
+<!-- Resultado -->
+<div id="result-area"></div>
+
+<script>
+const LETTERS = ['A','B','C','D','E'];
+const DIFF_LABEL = {F:'🟢 Fácil', M:'🟡 Moderado', D:'🔴 Difícil'};
+const DIFF_CLS   = {F:'db-f', M:'db-m', D:'db-d'};
+
+const SUBJECTS = [
+  {id:'im',  name:'Instrução Militar',      icon:'🎖️'},
+  {id:'dc',  name:'Defesa Civil',           icon:'🛡️'},
+  {id:'aph', name:'APH',                    icon:'🚑'},
+  {id:'st',  name:'Salv. Terrestre',        icon:'⛏️'},
+  {id:'op',  name:'OP Perigosos',           icon:'☢️'},
+  {id:'aq',  name:'Aquático',               icon:'🌊'},
+  {id:'sa',  name:'Salv. em Altura',        icon:'🧗'},
+  {id:'sv',  name:'Salv. Veicular',         icon:'🚗'},
+  {id:'tmi', name:'TMI',                    icon:'🔥'},
+  {id:'if',  name:'Inc. Florestal',         icon:'🌲'},
+];
+
+// ── BANCO DE QUESTÕES ───────────────────────────────────────────────────────
+const QUESTIONS = {
+
+im: [
+  {d:'F', q:'Na posição de "Sentido", os calcanhares ficam unidos e os pés formam ângulo de:', opts:['30°','45°','60°','90°','180°'], ans:2, exp:'Na posição de sentido os pés formam 60° entre si, calcanhares juntos.'},
+  {d:'F', q:'O comando "Descansar" permite ao militar:', opts:['Sentar no chão','Mover a perna esquerda à vontade mantendo o direito fixo','Falar à vontade','Abandonar a formação','Remover o fardamento'], ans:1, exp:'Descansar: perna esquerda afasta, braços soltos atrás, pé direito fixo.'},
+  {d:'F', q:'A continência (saludo) deve ser realizada a que distância mínima de uma autoridade?', opts:['2 passos','4 passos','6 passos','8 passos','10 passos'], ans:2, exp:'A continência é prestada a partir de 6 passos de distância da autoridade.'},
+  {d:'F', q:'O passo ordinário é o passo padrão de marcha com cadência de:', opts:['90 p/min','100 p/min','114 p/min','120 p/min','130 p/min'], ans:2, exp:'Passo ordinário: 114 passos/minuto, comprimento de 75 cm.'},
+  {d:'F', q:'Em formaturas, quem tem a responsabilidade de alinhar a tropa à direita?', opts:['O último da fila','O soldado mais alto','O guia de referência à direita','O comandante','O suboficial'], ans:2, exp:'O guia (referência) de alinhamento fica à direita e os demais se alinham por ele.'},
+  {d:'F', q:'O toque de corneta "Sentido" antecede qual momento?', opts:['Início do rancho','Hasteamento da bandeira','Início do exercício físico','Descanso noturno','Início da aula'], ans:1, exp:'O toque "Sentido" é executado antes do hasteamento/arriamento da bandeira nacional.'},
+  {d:'M', q:'"Meia Volta Volver" executa-se em quantos tempos e sobre qual pé?', opts:['1 tempo / pé direito','2 tempos / pé esquerdo','2 tempos / pé direito','3 tempos / ambos','1 tempo / ambos'], ans:1, exp:'Meia Volta Volver: 2 tempos — giro 180° no calcanhar esquerdo, aproxima pé direito.'},
+  {d:'M', q:'O comando "Firme" determina que o militar:', opts:['Corra ao local','Assuma posição de sentido imediatamente','Bata continência','Alinhe com os demais','Grite "Presente"'], ans:1, exp:'"Firme" = posição de sentido. É o executivo que corresponde ao preparatório "Atenção".'},
+  {d:'M', q:'No passo acelerado, a cadência é de quantos passos por minuto?', opts:['114','120','160','180','200'], ans:2, exp:'Passo acelerado: 160 passos/minuto, comprimento de 83 cm.'},
+  {d:'M', q:'Qual o comprimento do passo ordinário?', opts:['60 cm','65 cm','70 cm','75 cm','80 cm'], ans:3, exp:'Passo ordinário: 75 cm de comprimento, 114 p/min.'},
+  {d:'M', q:'A ordem "Alto" em marcha é executada quando o pé _____ toca o solo:', opts:['Esquerdo — pára imediatamente','Direito — ainda dá um passo com o esquerdo','Esquerdo — ainda dá 2 passos','Direito — pára imediatamente','Qualquer pé — pára em 3 tempos'], ans:1, exp:'"Alto": dado quando o pé direito toca o solo; o militar completa mais um passo com o esquerdo e para.'},
+  {d:'M', q:'A continência sentado (dentro de viatura ou à mesa) é feita:', opts:['Levantando-se','Com a mão direita na têmpora, corpo ereto','Inclinando a cabeça','Com olhar fixo à frente, sem gesto','Batendo o pé no chão'], ans:3, exp:'Dentro de viatura ou sentado: olhar fixo na direção da autoridade, sem gesto manual.'},
+  {d:'M', q:'Qual o significado da palavra de ordem "Volver" sem prefixo?', opts:['Girar 45°','Girar 90°','Girar 180°','Girar 270°','Marchar à vontade'], ans:2, exp:'"Volver" isolado = Meia Volta = 180°. "Direita Volver" = 90° à direita.'},
+  {d:'M', q:'O alinhamento em coluna (fila única) é sempre realizado pela:', opts:['Direita','Esquerda','Centro','Pelo mais alto','Pelo comandante'], ans:0, exp:'Em coluna (fila única), o alinhamento é sempre pela direita, com o guia à frente.'},
+  {d:'D', q:'Em solenidade com Bandeira Nacional, o militar sem armamento presta honras:', opts:['Permanecendo em repouso','Executando "Sentido" e voltando a cabeça para a bandeira','Executando "Sentido" sem movimentar a cabeça','Batendo continência durante toda a passagem','Ajoelhando-se'], ans:1, exp:'Sem armamento: posição de sentido com cabeça voltada para a bandeira durante a execução do Hino Nacional.'},
+  {d:'D', q:'No desfile, o "passo de parada" brasileiro tem cadência e comprimento de:', opts:['100 p/min – 65 cm','114 p/min – 60 cm','88 p/min – 50 cm','100 p/min – 80 cm','114 p/min – 75 cm'], ans:0, exp:'Passo de parada (estilo brasileiro): 100 passos/minuto, comprimento de 65 cm, perna elevada.'},
+  {d:'D', q:'Qual a posição correta do armamento no "Apresentar Armas" com fuzil?', opts:['Fuzil vertical à frente do corpo, coronha no chão','Fuzil inclinado à frente, coronha na altura do quadril','Fuzil na vertical, junto ao ombro direito, cano para cima','Fuzil horizontal à altura do peito','Fuzil apoiado no ombro, cano para baixo'], ans:2, exp:'"Apresentar Armas" com fuzil: arma na vertical junto ao ombro direito, cano para cima, mão esquerda na guarda.'},
+  {d:'D', q:'O "Recolher" (recolher do guarda) ocorre quando:', opts:['O militar vai dormir','O último serviço do dia é encerrado, sinalizando o fim das atividades','O comandante é substituído','A bandeira é hasteada','O rancho é servido'], ans:1, exp:'"Recolher" sinaliza o encerramento das atividades do quartel ao final do dia — toque de corneta correspondente.'},
+  {d:'D', q:'No "Direita Volver" em marcha, o giro de 90° é executado quando o pé _____ toca o solo:', opts:['Esquerdo','Direito','Qualquer','Esquerdo, completando com o direito','Direito, parando ali mesmo'], ans:0, exp:'"Direita Volver" em marcha: dado o comando quando o pé esquerdo toca o solo; gira-se 90° à direita.'},
+  {d:'D', q:'A "Forma" (reunir a tropa em formatura) deve ser executada em quanto tempo após o toque de corneta?', opts:['30 segundos','1 minuto','O mais rápido possível, sem tempo fixo no regulamento','5 minutos','3 minutos'], ans:2, exp:'O regulamento não fixa tempo exato — determina que a tropa deve se apresentar com a maior brevidade possível após o toque.'},
+],
+
+dc: [
+  {d:'F', q:'O SINPDEC é coordenado em nível federal pelo:', opts:['Ministério da Saúde','Exército Brasileiro','Ministério da Integração e Desenvolvimento Regional','IBGE','Corpo de Bombeiros Federal'], ans:2, exp:'O Sistema Nacional de Proteção e Defesa Civil (SINPDEC) é coordenado pelo Ministério da Integração e Desenvolvimento Regional.'},
+  {d:'F', q:'A Defesa Civil atua em quatro fases do ciclo de desastres. Qual NÃO faz parte?', opts:['Prevenção','Preparação','Punição','Resposta','Recuperação'], ans:2, exp:'As quatro fases são: Prevenção, Preparação, Resposta e Recuperação. "Punição" não é uma fase.'},
+  {d:'F', q:'Qual escala mede a intensidade dos terremotos com base na energia liberada?', opts:['Saffir-Simpson','Fujita','Mercalli','Richter','Beaufort'], ans:3, exp:'A escala Richter (magnitude) mede a energia liberada pelo terremoto. Mercalli mede os efeitos sentidos.'},
+  {d:'F', q:'A Defesa Civil Municipal é coordenada pelo:', opts:['Governador','Prefeito','Secretário de Segurança','Comandante dos Bombeiros','Presidente da República'], ans:1, exp:'A COMDEC (Coordenadoria Municipal de Defesa Civil) é presidida pelo Prefeito.'},
+  {d:'F', q:'Desastre de origem NATURAL causado por excesso de água no solo é:', opts:['Vendaval','Granizo','Escorregamento (deslizamento)','Seca','Terremoto'], ans:2, exp:'Escorregamentos (deslizamentos) são deflagrados pelo excesso de saturação de água no solo.'},
+  {d:'F', q:'A sigla NUDEC significa:', opts:['Núcleo de Defesa Civil','Núcleo de Desenvolvimento Civil','Núcleo de Desastres Civis','Nível de Urgência em Defesa Civil','Nenhuma alternativa'], ans:0, exp:'NUDEC = Núcleo Comunitário de Defesa Civil, formado por voluntários em bairros e comunidades.'},
+  {d:'M', q:'O COBRADE (Classificação Brasileira de Desastres) substituiu qual sistema anterior?', opts:['CEDEC','AVADAN','CODAR','SINPDEC','NUDEC'], ans:2, exp:'O COBRADE, instituído pela IN 01/2012 da SEDEC, substituiu o CODAR (Codificação de Desastres).'},
+  {d:'M', q:'Qual documento formaliza o reconhecimento federal de situação de emergência?', opts:['Decreto Municipal','Portaria do Prefeito','Portaria do Ministério da Integração','Decreto Presidencial','Resolução do CONAMA'], ans:2, exp:'A Portaria do Ministério da Integração (hoje MI) reconhece federalmente a Situação de Emergência ou Estado de Calamidade Pública.'},
+  {d:'M', q:'A "Situação de Emergência" difere do "Estado de Calamidade Pública" porque:', opts:['É declarada somente pelo Presidente','Afeta área maior','O município ainda tem capacidade parcial de resposta','Dura menos de 24h','Ocorre apenas em áreas urbanas'], ans:2, exp:'Na Situação de Emergência a capacidade de resposta está parcialmente comprometida; no Estado de Calamidade está totalmente comprometida.'},
+  {d:'M', q:'O fenômeno El Niño provoca, em geral, no Norte/Nordeste do Brasil:', opts:['Excesso de chuvas','Redução de chuvas e seca','Queda de granizo','Aumento de terremotos','Enchentes costeiras'], ans:1, exp:'El Niño reduz as chuvas no Norte e Nordeste (seca), enquanto aumenta no Sul do Brasil.'},
+  {d:'M', q:'A escala Fujita classifica a intensidade de:', opts:['Furacões','Tornados','Terremotos','Tsunamis','Vendavais'], ans:1, exp:'A escala Fujita (F0 a F5) classifica tornados pela velocidade dos ventos e danos causados.'},
+  {d:'M', q:'O mapa de risco de um município deve ser elaborado pela Defesa Civil em parceria com:', opts:['Apenas o Corpo de Bombeiros','Apenas o IBGE','Prefeitura, comunidade e órgãos técnicos','Somente engenheiros credenciados','Defesa Civil Estadual, sem participação local'], ans:2, exp:'O mapa de risco deve ser elaborado participativamente: poder público, técnicos e a própria comunidade.'},
+  {d:'M', q:'O AVADAN é um formulário utilizado para:', opts:['Declarar estado de calamidade','Avaliar danos e prejuízos após desastre','Solicitar auxílio federal preventivo','Cadastrar voluntários','Registrar óbitos em desastre'], ans:1, exp:'AVADAN = Avaliação de Danos. Formulário preenchido após o desastre para quantificar perdas humanas e materiais.'},
+  {d:'M', q:'Enchentes e inundações diferem porque:', opts:['Enchente é em rios, inundação é no mar','Enchente é gradual, inundação é repentina (enxurrada)','Enchente é o aumento do nível do rio com transbordamento, inundação é o mesmo com maior rapidez','Não há diferença técnica','Enchente é COBRADE natural, inundação é COBRADE tecnológico'], ans:2, exp:'Enchente/cheia: aumento gradual com possível transbordamento. Inundação: transbordamento efetivo. Enxurrada: fluxo rápido e violento.'},
+  {d:'D', q:'A Lei Federal 12.608/2012 instituiu:', opts:['O Corpo de Bombeiros Federal','O SINPDEC e a Política Nacional de Proteção e Defesa Civil','O COBRADE','A obrigatoriedade de NUDEC em todo município','O Fundo Nacional de Defesa Civil'], ans:1, exp:'A Lei 12.608/2012 instituiu a Política Nacional de Proteção e Defesa Civil (PNPDEC) e o SINPDEC.'},
+  {d:'D', q:'O "índice de vulnerabilidade" em Defesa Civil avalia:', opts:['Apenas perdas financeiras','A capacidade de resposta exclusivamente','A exposição + suscetibilidade da população ao risco','Somente a probabilidade do evento','A frequência histórica de desastres'], ans:2, exp:'Vulnerabilidade = exposição ao perigo + suscetibilidade da população + capacidade de adaptação/resposta.'},
+  {d:'D', q:'Qual é a diferença entre "ameaça" (hazard) e "risco" em Defesa Civil?', opts:['São sinônimos','Ameaça é o evento potencial; risco é a probabilidade de dano considerando a vulnerabilidade','Risco é o evento; ameaça é a consequência','Ameaça é natural; risco é tecnológico','Risco é calculado por engenheiros; ameaça pela Defesa Civil'], ans:1, exp:'Ameaça (hazard): evento perigoso potencial. Risco: combinação da ameaça com a vulnerabilidade da população exposta.'},
+  {d:'D', q:'O FIDE (Formulário de Informação de Desastre) deve ser enviado à SEDEC em até:', opts:['24 horas','48 horas','72 horas','5 dias','10 dias'], ans:1, exp:'O FIDE deve ser enviado em até 48 horas após a ocorrência do desastre para o registro e acionamento de recursos.'},
+  {d:'D', q:'Qual instrumento legal permite ao Prefeito decretar Situação de Emergência sem aprovação da Câmara?', opts:['Lei Orgânica Municipal','Decreto Municipal autônomo','A Constituição Federal (art. 144)','A Lei 12.608/2012 (art. 7º)','Medida Provisória'], ans:3, exp:'O art. 7º da Lei 12.608/2012 autoriza o Prefeito a decretar Situação de Emergência ou Estado de Calamidade por ato próprio (decreto), sem necessidade de aprovação legislativa prévia.'},
+  {d:'D', q:'Em Defesa Civil, "resiliência" significa:', opts:['Resistência total ao desastre','Capacidade de absorver impactos, adaptar-se e recuperar-se','Ausência de vulnerabilidade','Planejamento preventivo exclusivo','Velocidade de evacuação'], ans:1, exp:'Resiliência: capacidade de um sistema (comunidade/estrutura) de absorver perturbações, reorganizar-se e manter suas funções essenciais.'},
+],
+
+aph: [
+  {d:'F', q:'Em adultos, a frequência correta de compressões na RCP é:', opts:['60-80/min','80-100/min','100-120/min','120-140/min','Acima de 140/min'], ans:2, exp:'AHA 2020: 100-120 compressões/minuto, profundidade mínima de 5 cm (máx. 6 cm).'},
+  {d:'F', q:'A sigla APH significa:', opts:['Atendimento Pré-Hospitalar','Auxílio Pós-Hospitalar','Atendimento Primário Humano','Ação Preventiva Hospitalar','Assistência Paramédica Hospitalar'], ans:0, exp:'APH = Atendimento Pré-Hospitalar: todo atendimento prestado à vítima antes da chegada ao hospital.'},
+  {d:'F', q:'O pulso de adulto deve ser checado na artéria:', opts:['Radial','Femoral','Carotídea','Braquial','Tibial'], ans:2, exp:'Em emergências, o pulso de adulto é verificado na artéria carótida (pescoço) por ser de fácil acesso e confiável.'},
+  {d:'F', q:'O sinal universal de engasgo (obstrução de vias aéreas) é:', opts:['Tosse forte','Mãos na garganta','Palidez facial','Cianose labial','Inconsciência'], ans:1, exp:'O sinal universal de engasgo é as duas mãos na garganta, indicando obstrução de vias aéreas.'},
+  {d:'F', q:'Em que posição deve ficar uma vítima inconsciente que respira e NÃO tem trauma?', opts:['Decúbito dorsal (de costas)','Posição fetal','Posição lateral de segurança (PLS)','Sentada','De bruços'], ans:2, exp:'Posição Lateral de Segurança (PLS): evita aspiração de vômito e mantém vias aéreas pérvias em vítimas inconscientes sem trauma.'},
+  {d:'F', q:'A relação compressão:ventilação na RCP adulto com 1 socorrista é:', opts:['15:2','30:2','30:1','15:1','20:2'], ans:1, exp:'Para adultos (1 ou 2 socorristas): 30 compressões para 2 ventilações, sem interrupções.'},
+  {d:'M', q:'Na Cadeia de Sobrevivência (AHA 2020) para PCR fora do hospital, a ordem correta é:', opts:['Desfibrilação – RCP – Acionar – Cuidados pós','Reconhecer/Acionar – RCP alta qualidade – Desfibrilação – Suporte avançado – Cuidados pós','Acionar – Desfibrilação – RCP – Cuidados pós','RCP – Reconhecer – Acionar – Suporte avançado','Suporte avançado – RCP – Desfibrilação – Cuidados pós'], ans:1, exp:'Cadeia de Sobrevivência AHA 2020 (extrahospitalar): 1-Reconhecer e acionar; 2-RCP; 3-DEA; 4-Suporte avançado; 5-Cuidados pós-PCR.'},
+  {d:'M', q:'O método de abertura de vias aéreas contraindicado em suspeita de trauma cervical é:', opts:['Tração mandibular (jaw-thrust)','Hiperextensão da cabeça com elevação do mento','Cânula orofaríngea','Aspiração manual','Colar cervical'], ans:1, exp:'A hiperextensão (head-tilt/chin-lift) movimenta a coluna cervical — contraindicada em trauma. Usar jaw-thrust.'},
+  {d:'M', q:'A cor AMARELA na triagem START indica:', opts:['Imediato — risco de vida','Retardado — grave mas estável','Leve — pode aguardar','Óbito ou sem chance','Observação'], ans:1, exp:'START Triage: Vermelho = imediato, Amarelo = retardado (grave/estável), Verde = menor, Preto = óbito.'},
+  {d:'M', q:'A manobra de Heimlich em adulto consciente com engasgo completo aplica compressões:', opts:['No tórax, abaixo do esterno','No abdome, acima do umbigo e abaixo do esterno','No abdome, abaixo do umbigo','Na coluna lombar','No pescoço'], ans:1, exp:'Heimlich: compressões abdominais no epigástrio (acima do umbigo e abaixo do processo xifoide), para cima e para dentro.'},
+  {d:'M', q:'A profundidade mínima de compressão torácica em adultos na RCP é:', opts:['3 cm','4 cm','5 cm','6 cm','7 cm'], ans:2, exp:'AHA 2020: compressões de pelo menos 5 cm, não excedendo 6 cm, em adultos.'},
+  {d:'M', q:'Em trauma de tórax com suspeita de pneumotórax hipertensivo, o socorrista deve:', opts:['Realizar RCP imediatamente','Impor bandagem oclusiva em todos os lados','Aplicar bandagem oclusiva em 3 lados (válvula unidirecional)','Ignorar e tratar outras lesões','Dar ventilação com pressão positiva'], ans:2, exp:'Pneumotórax aberto: bandagem oclusiva em 3 lados cria válvula unidirecional, permitindo saída de ar mas não entrada.'},
+  {d:'M', q:'O DEA (Desfibrilador Externo Automático) pode ser utilizado por:', opts:['Apenas médicos','Apenas paramédicos','Apenas bombeiros treinados','Qualquer pessoa leiga, pois guia o usuário por voz','Apenas enfermeiros'], ans:3, exp:'O DEA é projetado para uso por leigos — orienta o operador por comandos de voz e analisa automaticamente o ritmo.'},
+  {d:'M', q:'A imobilização de vítima com suspeita de trauma raquimedular requer:', opts:['Apenas colar cervical','Colar cervical + prancha rígida + fixadores','Somente maca flexível','Maca articulada + colar','Apenas amarrar a vítima à maca'], ans:1, exp:'Imobilização completa de coluna: colar cervical + prancha longa rígida + fixadores laterais de cabeça + tirantes.'},
+  {d:'D', q:'No START Triage, a avaliação da perfusão capilar é feita no _____ com tempo de enchimento esperado:', opts:['Lóbulo da orelha – < 1s','Leito ungueal – < 2s','Palma da mão – < 3s','Lábios – < 2s','Pé – < 3s'], ans:1, exp:'START avalia perfusão pelo leito ungueal (enchimento capilar): normal < 2s. Se > 2s = vermelho.'},
+  {d:'D', q:'Em queimadura de 2º grau profunda, o tratamento pré-hospitalar correto é:', opts:['Estourar as bolhas e cobrir','Aplicar creme hidratante','Cobrir com curativo úmido e não estourar bolhas','Imergir em água fria por 30 min','Não cobrir para não infectar'], ans:2, exp:'Queimadura: não estourar bolhas (barreira protetora), cobrir com curativo úmido e não aderente, não usar cremes domésticos.'},
+  {d:'D', q:'A regra dos "9" para queimaduras em adulto atribui ao tronco anterior:', opts:['9%','18%','27%','36%','4,5%'], ans:1, exp:'Regra dos 9 (Wallace): cabeça=9%, cada braço=9%, tronco anterior=18%, tronco posterior=18%, cada perna=18%, genitália=1%.'},
+  {d:'D', q:'Em PCR por afogamento em criança, a sequência prioritária difere do adulto porque:', opts:['Inicia-se com desfibrilação','Prioriza-se 5 ventilações de resgate antes das compressões','Não se faz ventilação','Usa-se relação 15:2 iniciando pelas ventilações','Não se usa DEA'], ans:3, exp:'Em crianças (afogamento/asfixia), a parada geralmente é respiratória: dar 5 ventilações iniciais e usar relação 15:2 (2 socorristas).'},
+  {d:'D', q:'O choque hipovolêmico hemorrágico classe III implica perda de:', opts:['Até 15% da volemia','15-30% da volemia','30-40% da volemia','Acima de 40% da volemia','Qualquer valor com sinais vitais normais'], ans:2, exp:'Classificação de choque hemorrágico (ATLS): Classe I ≤15%, Classe II 15-30%, Classe III 30-40%, Classe IV >40%.'},
+  {d:'D', q:'O torniquete (garrote) deve ser aplicado para controle de hemorragia em membros:', opts:['Diretamente sobre a ferida','5-7 cm proximal à ferida (acima do sangramento)','5-7 cm distal à ferida','Em qualquer ponto do membro','Apenas se pressão direta falhar após 30 min'], ans:1, exp:'Torniquete: 5-7 cm acima (proximal) da lesão; apertar até cessar o sangramento; anotar horário; não remover no pré-hospitalar.'},
+],
+
+st: [
+  {d:'F', q:'Em colapso de estrutura, a primeira ação da equipe é:', opts:['Usar câmera térmica','Remoção de entulho','Chamada de voz com silêncio total','Acionamento de cão farejador','Avaliação estrutural por engenheiro'], ans:2, exp:'Primeiro: silêncio total + chamada de voz para detectar sinais sonoros de vítimas vivas antes de qualquer equipamento.'},
+  {d:'F', q:'O KED (Kendrick Extrication Device) é utilizado para:', opts:['Imobilizar fraturas de MMII','Extrair vítima sentada com suspeita de coluna','Realizar RCP em espaço confinado','Controlar hemorragia','Ventilação artificial'], ans:1, exp:'KED: colete de imobilização de coluna para extração de vítimas sentadas em veículos.'},
+  {d:'F', q:'Em espaço confinado, a concentração de O₂ considerada segura para entrada é:', opts:['Acima de 16%','Entre 19,5% e 23%','Acima de 23%','Entre 18% e 21%','Qualquer concentração com EPIs adequados'], ans:1, exp:'Atmosfera segura: O₂ entre 19,5% e 23%. Abaixo de 19,5% = deficiente; acima de 23% = enriquecida (risco de incêndio).'},
+  {d:'F', q:'O que é "zona de exclusão" em operações de busca e salvamento?', opts:['Área para descanso da equipe','Área de perigo imediato ao redor da vítima/estrutura','Área de triagem de vítimas','Área de comando','Área de acesso de ambulâncias'], ans:1, exp:'Zona de exclusão (quente): área de perigo imediato, acesso apenas de equipes necessárias para o resgate.'},
+  {d:'F', q:'O método de busca em "grade" (grid) é utilizado em áreas:', opts:['Pequenas e com obstáculos','Grandes e abertas, sem obstáculos significativos','Subaquáticas','Urbanas densas','Com vítimas múltiplas confirmadas'], ans:1, exp:'Busca em grade: eficiente para grandes áreas abertas. Divide a área em setores e percorre sistematicamente.'},
+  {d:'F', q:'Qual EPI é obrigatório para entrada em espaço confinado com atmosfera desconhecida?', opts:['Apenas máscara N95','Capacete e luvas','SCBA (Self-Contained Breathing Apparatus) + traje adequado','Apenas respirador semifacial PFF2','Cinto de segurança simples'], ans:2, exp:'Espaço confinado com atmosfera desconhecida ou deficiente: SCBA (AR autônomo) é obrigatório, não apenas máscaras filtrantes.'},
+  {d:'M', q:'O escoramento em "T" é utilizado para:', opts:['Conter encostas','Suportar paredes verticais em risco de colapso','Criar acessos em pisos','Fixar coberturas','Estabilizar veículos'], ans:1, exp:'Escoramento em "T" (rakers/escoras inclinadas): estabiliza paredes verticais ameaçadas de desmoronamento lateral.'},
+  {d:'M', q:'A concentração de CO (monóxido de carbono) imediatamente perigosa à vida em espaço confinado é:', opts:['35 ppm','200 ppm','1.200 ppm','1.200 mg/m³','50 ppm'], ans:2, exp:'IDLH (NIOSH) para CO: 1.200 ppm — concentração que representa perigo imediato à vida.'},
+  {d:'M', q:'Na busca por vítimas soterradas, o detector de vítimas por vibração (geofone/sismógrafo) é mais eficaz quando:', opts:['A vítima faz barulho constantemente','Há silêncio total e a vítima é solicitada a bater em algo','Em ambientes barulhentos','Com equipes trabalhando ao redor','Com máquinas pesadas em operação'], ans:1, exp:'Geofone: detecta micro-vibrações; requer silêncio absoluto e a vítima deve bater (tocar, gritar) para gerar sinal.'},
+  {d:'M', q:'O sistema ICS (Incident Command System) em operações de resgate define que cada supervisor gerencia no máximo:', opts:['3 subordinados','5-7 subordinados (ideal 5)','10 subordinados','Sem limite','2 subordinados'], ans:1, exp:'ICS: amplitude de controle ideal de 3 a 7 pessoas por supervisor (padrão 5), para manter controle efetivo.'},
+  {d:'M', q:'Em resgate em trincheira, a zona de exclusão mínima lateral a partir das bordas é de:', opts:['0,5 m','1 m','1,5 m','3 m','5 m'], ans:1, exp:'Trincheira: zona de exclusão de pelo menos 1 metro além das bordas para evitar vibração e colapso secundário.'},
+  {d:'M', q:'O índice HAZMAT no contexto de espaço confinado que mais mata é:', opts:['Excesso de oxigênio','Deficiência de oxigênio','Monóxido de carbono','H₂S','Explosão'], ans:1, exp:'A deficiência de O₂ (< 19,5%) é a principal causa de morte em espaço confinado mundialmente.'},
+  {d:'M', q:'A ferramenta pneumática de percussão em espaço confinado é contraindicada quando há:', opts:['Baixa temperatura','Excesso de O₂ ou atmosfera inflamável','Pouca iluminação','Muita umidade','Presença de vítima consciente'], ans:1, exp:'Ferramentas pneumáticas/elétricas criam centelhas — contraindicadas em atmosfera com O₂ acima de 23% ou gases inflamáveis.'},
+  {d:'M', q:'O acesso por "túnel" (criação de passagem horizontal no entulho) é preferido quando:', opts:['A vítima está em andares superiores','A vítima está soterrada horizontalmente e o acesso vertical é impossível','Há risco de incêndio','A vítima é obesa','O entulho é de concreto armado'], ans:1, exp:'Túnel horizontal: quando o acesso vertical é impossível ou perigoso e a vítima está em posição horizontal soterrada.'},
+  {d:'D', q:'O NR-33 classifica espaço confinado quanto ao risco em:', opts:['Baixo e alto','Tipo A, B e C','Permitidos e não permitidos para entrada','Classes I, II e III','Zonas 0, 1 e 2'], ans:2, exp:'NR-33: espaços "permitidos" (sem risco significativo) e "não permitidos" (com risco potencial grave — exigem PTE).'},
+  {d:'D', q:'A técnica de "breaching" (abertura de parede) em busca de vítimas começa por:', opts:['O ponto mais alto da parede','A base da parede','Um ponto de menor resistência identificado por percussão','O centro geométrico da parede','A lateral mais afastada do colapso'], ans:2, exp:'Breaching: identificar por batidas (percussão) o ponto de menor resistência (som oco) antes de iniciar a abertura.'},
+  {d:'D', q:'O "void" (câmara de sobrevivência) mais comum em colapso de laje é formado:', opts:['Ao lado de paredes externas','Em formato triangular ao lado de móveis resistentes ou vigas','No centro do ambiente','Nos cantos superiores dos cômodos','Apenas em estruturas de madeira'], ans:1, exp:'Voids triangulares formam-se ao lado de móveis rígidos (sofás, mesas) ou vigas que sustentam a laje colapsada.'},
+  {d:'D', q:'Em resgate em montanha (busca em terreno), o padrão de busca "pente" (sweep) é ideal quando:', opts:['A área é circular','O terreno é irregular com muitos obstáculos','A área é linear (corredor, vale) com acesso por uma extremidade','Há muitas equipes disponíveis','O clima é adverso'], ans:2, exp:'Busca em pente: eficaz em terrenos lineares (trilhas, vales) com acesso ordenado por uma extremidade.'},
+  {d:'D', q:'Na extração de vítima de espaço confinado vertical (poço), o dispositivo de resgate preferencial é:', opts:['Corda simples sem trava','Sistema trípode com talha e linha de segurança','Escada de madeira','Guincho de veículo','Corda de segurança amarrada ao caminhão'], ans:1, exp:'Extração vertical em poço: trípode sobre a abertura + talha (sistema de elevação mecânico) + linha de segurança independente.'},
+  {d:'D', q:'A "apneia de busca" no contexto de espaço confinado ocorre quando:', opts:['A equipe perde o contato de rádio','Um resgatista entra sem linha guia e perde a saída','A vítima perde a consciência durante o resgate','A ventilação forçada falha','O gás suprime o detector'], ans:1, exp:'"Apneia de busca" (situação crítica): resgatista que entra em espaço sem linha guia pode desorientar-se e não encontrar a saída, especialmente com visibilidade zero.'},
+],
+
+op: [
+  {d:'F', q:'O painel de segurança ONU é obrigatório em veículos que transportam produtos perigosos. O número ONU 1203 identifica:', opts:['Diesel','Etanol','Gasolina','GLP','Querosene'], ans:2, exp:'ONU 1203 = Gasolina (líquido inflamável, classe 3).'},
+  {d:'F', q:'No sistema NFPA 704, o losango AZUL representa:', opts:['Inflamabilidade','Reatividade','Saúde','Perigo especial','Radioatividade'], ans:2, exp:'NFPA 704: Azul = Saúde, Vermelho = Inflamabilidade, Amarelo = Reatividade, Branco = Especial.'},
+  {d:'F', q:'A "zona quente" em incidente com produto perigoso é a área:', opts:['De suporte e comando','De descontaminação','De contato direto com o produto','De triagem de vítimas','De acesso de ambulâncias'], ans:2, exp:'Zona quente (exclusão): área diretamente contaminada; acesso restrito a equipe com EPI máximo.'},
+  {d:'F', q:'O número de risco "33" no painel de transporte indica:', opts:['Gás inflamável','Líquido muito inflamável (ponto de fulgor < 23°C)','Sólido inflamável','Oxidante','Corrosivo'], ans:1, exp:'Número de risco 33 = líquido muito inflamável. Ex: gasolina (1203), etanol (1170).'},
+  {d:'F', q:'O GLP (Gás de Cozinha) tem número ONU:', opts:['1075','1017','1203','1993','1824'], ans:0, exp:'ONU 1075 = GLP (Gases de Petróleo Liquefeitos). Gás inflamável, classe 2.1.'},
+  {d:'F', q:'A primeira ação ao chegar a um incidente com produto perigoso é:', opts:['Entrar para resgatar vítimas','Identificar o produto a distância segura (binóculos/painel ONU)','Aplicar espuma no produto','Descontaminar as vítimas','Ligar para o fabricante'], ans:1, exp:'Primeiro: identificar o produto À DISTÂNCIA usando o painel ONU/número de risco, rótulo ou documentação — nunca se aproximar sem saber o produto.'},
+  {d:'M', q:'O EPI Nível A oferece proteção contra:', opts:['Apenas respingos','Apenas vapores','Vapores, gases, partículas e líquidos (proteção máxima)','Apenas agentes biológicos','Apenas radiação'], ans:2, exp:'Nível A: encapsulamento total com SCBA interno — máxima proteção contra vapores, gases e líquidos.'},
+  {d:'M', q:'O ONU 1017 identifica qual produto de alto risco em emergências:', opts:['Amônia','Ácido Sulfúrico','Cloro','Formol','Bromo'], ans:2, exp:'ONU 1017 = Cloro (Cl₂). Gás tóxico e oxidante, muito perigoso em vazamentos.'},
+  {d:'M', q:'A descontaminação de emergência (gross decontamination) consiste em:', opts:['Remoção do agente com solventes','Lavagem abundante com água e remoção de roupas contaminadas','Aplicação de antídotos','Uso de carvão ativado','Ventilação forçada da área'], ans:1, exp:'Descontaminação bruta: retirar roupas (elimina até 80% da contaminação) e lavar com água abundante antes de qualquer tratamento.'},
+  {d:'M', q:'O número de risco "X" anteposto ao número de risco ONU (ex: X338) indica:', opts:['Produto radioativo','Reação violenta com água','Produto oxidante','Produto corrosivo','Produto explosivo'], ans:1, exp:'X antes do número de risco = reação perigosa com água. Ex: X338 = líquido inflamável que reage violentamente com água.'},
+  {d:'M', q:'O guia de referência para emergências com produtos perigosos no Brasil é:', opts:['Manual de Primeiros Socorros da OMS','FISPQ (Ficha de Segurança)','ERG (Emergency Response Guidebook) / Guia de Resposta a Emergências','Norma ABNT NBR 7500','Manual NFPA 471'], ans:2, exp:'O ERG (GRE – Guia de Resposta a Emergências), publicado pelo DOT/Transport Canada/SCT, é o guia de referência em campo.'},
+  {d:'M', q:'A distância de isolamento inicial para a maioria dos produtos perigosos em vazamento pequeno deve ser de pelo menos:', opts:['10 m','25 m','50 m','100 m','500 m'], ans:1, exp:'ERG: distância inicial de isolamento geralmente 25-30 m para vítimas e curiosos em vazamentos pequenos (varia conforme o produto).'},
+  {d:'M', q:'Produto com rótulo de risco romboidal LARANJA com número 1 é da classe:', opts:['Explosivos','Gases inflamáveis','Líquidos inflamáveis','Oxidantes','Tóxicos'], ans:0, exp:'Rótulo laranja = Classe 1 = Explosivos (subclasses 1.1 a 1.6 conforme tipo de risco).'},
+  {d:'M', q:'Em incêndio envolvendo GLP, a prioridade é:', opts:['Combater o incêndio diretamente','Refrigerar o cilindro/tanque com água e fechar a válvula SE seguro','Cobrir o cilindro com espuma','Evacuar apenas se o cilindro estiver vermelho','Usar CO₂ no cilindro'], ans:1, exp:'GLP em chamas: resfriar o recipiente com água (evitar BLEVE), fechar válvula se seguro, isolar a área.'},
+  {d:'D', q:'O fenômeno BLEVE (Boiling Liquid Expanding Vapor Explosion) ocorre quando:', opts:['Líquido inflamável vaza e encontra ignição','Um recipiente pressurizado aquecido perde a integridade e o líquido vira vapor explosivamente','Dois produtos incompatíveis são misturados','Gás comprimido foge por rachadura','Produto pulverizado encontra faísca'], ans:1, exp:'BLEVE: explosão de recipiente pressurizado aquecido — o líquido superaquecido se expande instantaneamente em vapor, causando explosão violenta.'},
+  {d:'D', q:'O índice LEL (Lower Explosive Limit) indica:', opts:['Temperatura de autoignição','Ponto de fulgor','Concentração mínima no ar para que o gás exploda','Concentração máxima para explosão','Tempo de evacuação segura'], ans:2, exp:'LEL (Limite Inferior de Explosividade): concentração mínima do gás/vapor no ar abaixo da qual a mistura não explode. Acima do UEL também não explode (muito rico).'},
+  {d:'D', q:'A EPI nível B difere do nível A principalmente porque:', opts:['Tem SCBA externo, com menor proteção de pele','Não exige SCBA','Protege apenas contra vapores, não líquidos','É usado apenas em situações biológicas','Inclui proteção contra radiação'], ans:0, exp:'Nível B: SCBA externo (proteção respiratória máxima), mas vestimenta não encapsulada totalmente — menor proteção de pele que o Nível A.'},
+  {d:'D', q:'Qual produto, ao entrar em contato com água, gera gás H₂S (ácido sulfídrico)?', opts:['Cloreto de sódio','Sulfeto de sódio','Ácido acético','Carbonato de cálcio','Permanganato de potássio'], ans:1, exp:'Sulfeto de sódio (Na₂S) + água → NaOH + H₂S. O H₂S é extremamente tóxico (IDLH: 50 ppm).'},
+  {d:'D', q:'O sistema de classificação GHS (Sistema Globalmente Harmonizado) substituiu no Brasil qual instrumento?', opts:['ABNT NBR 7500','FISPQ baseada na ANSI Z400.1','Norma regulamentadora NR-26 e as FISPQs antigas (NBR 14725)','Decreto 96.044','Portaria INMETRO 53/2008'], ans:2, exp:'O GHS foi incorporado ao Brasil pela ABNT NBR 14725 (revisada) e pela NR-26, padronizando a FISPQ e a rotulagem química.'},
+  {d:'D', q:'Em derramamento de ácido sulfúrico concentrado, o produto de neutralização imediata mais seguro para uso emergencial em solo é:', opts:['Água pura abundante','Cal hidratada (hidróxido de cálcio) ou bicarbonato de sódio','Soda cáustica','Areia fina','Cloreto de cálcio'], ans:1, exp:'Cal hidratada ou bicarbonato de sódio: neutralizam o ácido sem reação violenta. Soda cáustica é perigosa; água pura dilui mas pode dispersar o ácido.'},
+],
+
+aq: [
+  {d:'F', q:'A sequência correta do protocolo de salvamento aquático é:', opts:['Entrar – Nadar – Rebocar','Alcançar – Atirar – Rebocar – Entrar','Atirar – Entrar – Rebocar','Rebocar – Alcançar – Entrar','Nadar – Resgatar – Rebocar'], ans:1, exp:'Protocolo: Alcançar (extensão), Atirar (corda/boia), Rebocar (embarcação), Entrar (nado — último recurso).'},
+  {d:'F', q:'Vítima de afogamento que está na água, consciente, com tosse e sem espuma corresponde ao grau:', opts:['Grau 1','Grau 2','Grau 3','Grau 4','Grau 5'], ans:0, exp:'Szpilman Grau 1: consciente, com tosse, sem espuma. Mortalidade < 1%.'},
+  {d:'F', q:'O EFI (Equipamento de Flutuação Individual) tipo colete deve ter empuxo mínimo de:', opts:['50 N','75 N','100 N','150 N','200 N'], ans:3, exp:'Conforme ABNT NBR 15.232, o EFI tipo colete deve ter empuxo mínimo de 150 N (≈15,3 kgf).'},
+  {d:'F', q:'Afogamento "seco" significa:', opts:['Afogamento em água salgada','Afogamento sem aspiração de água (laringoespasmo fecha a glote)','Afogamento em piscina sem cloro','Afogamento em água gelada','Afogamento em criança menor de 5 anos'], ans:1, exp:'Afogamento seco (10-15% dos casos): laringoespasmo reflexo fecha a glote — o paciente morre por asfixia sem aspirar água.'},
+  {d:'F', q:'O sinal mais evidente de afogamento passivo (vítima que afunda silenciosamente) é:', opts:['Gritos por socorro','Agitação na água','Vítima vertical, cabeça inclinada, face abaixo d\'água','Braços acenando','Espuma na boca'], ans:2, exp:'Afogamento ativo (pânico) = agitação/gritos. Afogamento passivo = vítima vertical silenciosa, cabeça afundando — perigosamente discreto.'},
+  {d:'F', q:'A corrente de retorno (rip current) é:', opts:['Corrente de maré','Canal estreito de água que escoa rapidamente para o mar, quebrando as ondas','Corrente de fundo em rios','Vórtice formado em cachoeiras','Corrente gerada por ventos'], ans:1, exp:'Rip current: fluxo estreito e rápido que escoa perpendicularmente à praia — principal causador de afogamentos em praias.'},
+  {d:'M', q:'Grau 5 de Szpilman apresenta:', opts:['Tosse com espuma rósea','Inconsciente com pulso, sem apneia','Parada respiratória com pulso presente','PCR (sem pulso e sem respiração)','Consciente com edema pulmonar'], ans:2, exp:'Szpilman Grau 5: inconsciente, parada respiratória (apneia), MAS com pulso presente. Mortalidade ≈ 44%.'},
+  {d:'M', q:'A abordagem pela retaguarda em vítima de afogamento em pânico é feita para:', opts:['Facilitar o transporte','Evitar o abraço de pânico da vítima','Verificar a coluna cervical','Fazer RCP na água','Aplicar o suporte de coluna'], ans:1, exp:'Pela retaguarda: evita que a vítima em pânico empurre o socorrista para baixo ("abraço de pânico").'},
+  {d:'M', q:'Hipotermia grave por imersão: a vítima deve ser retirada da água em posição:', opts:['Vertical (em pé)','Horizontal (para evitar hipotensão ortostática)','Semi-sentada','Qualquer posição, o mais rápido possível','De bruços'], ans:1, exp:'Horizontal: evita hipotensão ortostática e colapso circulatório — risco de "morte no resgate" em hipotérmicos.'},
+  {d:'M', q:'O volume de água inalado que causa edema pulmonar significativo em afogamento é de aproximadamente:', opts:['50 mL','100 mL','150 mL','500 mL','1 litro'], ans:2, exp:'Cerca de 1-3 mL/kg (≈ 70-150 mL em adulto) já causam hipoxemia e edema pulmonar clinicamente relevante.'},
+  {d:'M', q:'Em salvamento aquático, a embarcação deve se posicionar em relação à vítima:', opts:['A favor da corrente (água empurra para a vítima)','Contra a corrente (rio) ou do lado de onde vem o vento (mar)','Sem relação com corrente','A 45° da vítima','Entre a vítima e a margem'], ans:1, exp:'Posicionar a embarcação de forma que a correnteza ou vento a empurre naturalmente em direção à vítima, facilitando o resgate.'},
+  {d:'M', q:'RCP em afogamento: deve-se iniciar com:', opts:['30 compressões','5 ventilações de resgate antes das compressões','Desfibrilação imediata','Aspiração da água dos pulmões','Posição de Trendelenburg'], ans:1, exp:'Afogamento: causa asfixia, não cardíaca. Iniciar com 5 ventilações de resgate para oxigenar imediatamente.'},
+  {d:'M', q:'Afogamento em água doce X água salgada: a diferença clínica principal é:', opts:['Água salgada não causa hipoxemia','Água doce causa hipernatremia','Ambas causam hipoxemia por desnaturação do surfactante e distúrbios osmóticos, mas o mecanismo difere','Água salgada é inofensiva em pequenas quantidades','Não há diferença clínica relevante'], ans:2, exp:'Ambas causam hipoxemia — principal problema. Água doce: entra nos pulmões rapidamente, dilui surfactante. Água salgada: concentrada, atrai plasma para os pulmões. O tratamento é o mesmo.'},
+  {d:'M', q:'O colete salva-vidas tipo I (offshore) deve manter a vítima inconsciente:', opts:['De bruços (face para baixo)','De costas com face para cima','Em posição fetal','Na posição em que estava','Vertical na água'], ans:1, exp:'Colete tipo I: deve girar automaticamente a vítima inconsciente de bruços para de costas com face acima da água.'},
+  {d:'D', q:'A síndrome de imersão ("afogamento secundário") pode ocorrer até _____ após o evento:', opts:['30 minutos','1 hora','4 horas','24-72 horas','1 semana'], ans:3, exp:'Afogamento secundário (síndrome pós-imersão): sintomas podem surgir até 24-72h após, por inflamação pulmonar progressiva — toda vítima de afogamento deve ser observada.'},
+  {d:'D', q:'A classificação de Szpilman é usada para:', opts:['Classificar a gravidade do afogamento e orientar o tratamento','Determinar o tipo de corrente de água','Classificar equipamentos de salvatagem','Padronizar técnicas de nado','Calcular distâncias de resgate'], ans:0, exp:'A Classificação de Szpilman (Graus 1-6) orienta o tratamento pré-hospitalar e hospitalar do afogado com base nos sinais clínicos.'},
+  {d:'D', q:'Qual Grau de Szpilman já apresenta mortalidade superior a 90%?', opts:['Grau 3','Grau 4','Grau 5','Grau 6','Grau 2'], ans:3, exp:'Grau 6 (óbito no local, PCR prolongada sem RCP): mortalidade > 90-93%. Grau 5 ≈ 44%.'},
+  {d:'D', q:'Em afogamento em águas rasas com suspeita de trauma cervical, como se procede no salvamento aquático?', opts:['Ignorar o trauma e priorizar a retirada','Retirar verticalmente pelo pescoço','Estabilizar a coluna em posição neutra na água antes de retirar','Retirar rapidamente e avaliar depois','Não mover a vítima de forma alguma'], ans:2, exp:'Mergulho em água rasa: suspeita alta de trauma cervical. Estabilizar a coluna em posição neutra na água, depois retirar em prancha com suporte cervical.'},
+  {d:'D', q:'Qual droga é contraindicada no tratamento inicial de afogamento grave (Grau 5-6) no pré-hospitalar?', opts:['Oxigênio','Adrenalina (epinefrina)','Atropina em dose única','Naloxona','Nenhuma é contraindicada'], ans:2, exp:'Atropina não tem indicação em PCR hipóxica (afogamento). A sequência é RCP + O₂ + vasopressor (adrenalina) conforme protocolo de PCR.'},
+  {d:'D', q:'A proporção estimada de afogamentos no Brasil que ocorrem em piscinas privadas é:', opts:['< 5%','5-10%','10-20%','20-40%','> 50%'], ans:3, exp:'Estudos nacionais apontam que 20-40% dos afogamentos em crianças ocorrem em piscinas residenciais — reforçando a importância de cercas e supervisão.'},
+],
+
+sa: [
+  {d:'F', q:'O mosquetão de segurança (com trava) utilizado em trabalho em altura deve ser certificado pela norma:', opts:['ABNT NBR 14626','ABNT NBR 15835','EN 362 / ABNT NBR 15835','NR-35','NFPA 1983'], ans:2, exp:'Mosquetão de segurança com trava: EN 362 (europeia) ou ABNT NBR 15835. NR-35 é a norma de segurança do trabalho em altura.'},
+  {d:'F', q:'A NR-35 considera trabalho em altura toda atividade realizada acima de:', opts:['1,0 m','1,5 m','2,0 m','2,5 m','3,0 m'], ans:2, exp:'NR-35: trabalho em altura é qualquer atividade acima de 2,0 m do nível inferior, com risco de queda.'},
+  {d:'F', q:'O nó de "oito duplo" (figura oito em alça) é usado principalmente para:', opts:['Unir duas cordas','Criar ponto de ancoragem em alça','Travar o sistema de rapel','Fixar mosquetão à cadeirinha','Elevar carga pesada'], ans:1, exp:'Nó oito em alça (figure-8 on a bight): cria alça resistente usada para ancoragem ou fixação em mosquetão.'},
+  {d:'F', q:'A cadeirinha (baudrier) de resgate deve ser inspecionada antes de cada uso buscando:', opts:['Apenas desgaste nas alças','Cortes, abrasões, deformações, costuras soltas e prazo de validade','Somente o peso máximo suportado','Apenas a cor das fitas','Presença de sujeira'], ans:1, exp:'Inspeção pré-uso: buscar cortes, abrasões, calor excessivo, costuras rompidas, deformações e verificar prazo de validade (geralmente 10 anos ou conforme fabricante).'},
+  {d:'F', q:'O descensor "rack" (grade de rapel) é indicado para:', opts:['Escalada livre','Descida controlada com cargas pesadas e longas distâncias','Elevação de vítimas','Resgate em espaço confinado','Nó automático'], ans:1, exp:'Rack (grade): descensor para rappel de longa distância com cargas pesadas — fácil controle de velocidade.'},
+  {d:'F', q:'O sistema de ancoragem deve sempre ser construído preferencialmente com:', opts:['1 ponto de ancoragem','2 pontos independentes ou mais','3 pontos dependentes','Qualquer ponto disponível','O mais próximo possível da vítima'], ans:1, exp:'Ancoragem: sempre 2 ou mais pontos independentes (redundância) para garantir a integridade do sistema em caso de falha de um ponto.'},
+  {d:'M', q:'O sistema 3:1 (vantagem mecânica simples) num polipasto significa que:', opts:['3 pessoas puxam 1 corda','A força de tração é multiplicada por 3','A velocidade de elevação é multiplicada por 3','3 cordas sustentam 1 vítima','3 mosquetões são necessários'], ans:1, exp:'Polipasto 3:1: aplica-se 1/3 da força necessária para elevar a carga, mas percorre-se 3x mais corda. Vantagem mecânica = 3.'},
+  {d:'M', q:'O nó "prussik" é um exemplo de nó:', opts:['De fixação terminal','De emenda entre cordas','Autoblocante (trava sob carga, solta sem carga)','Decorativo','De ancoragem múltipla'], ans:2, exp:'Prussik: nó autoblocante — trava quando carregado, pode ser deslizado manualmente quando sem carga. Usado como segurança em sistemas de rapel/ascensão.'},
+  {d:'M', q:'Em operação de resgate em altura com vítima inconsciente, qual é o ponto de fixação primário da cadeirinha de resgate?', opts:['Pernas','Peitoral (sternal)','Dorso','Lateral da cadeirinha','Qualquer ponto disponível'], ans:1, exp:'Para vítima inconsciente: fixação no ponto esternal (frontal peitoral) para manter a vítima em posição semivertical/inclinada segura durante o resgate.'},
+  {d:'M', q:'A corda de poliamida (nylon) para resgate difere da corda de poliéster porque:', opts:['É mais pesada','Tem maior elongação (absorve impacto) mas menor resistência à abrasão','Não absorve água','É mais rígida','Tem menor elongação e maior resistência UV'], ans:1, exp:'Poliamida: elongação dinâmica maior (absorve impactos de quedas) — ideal para escalada. Poliéster: menor elongação, melhor estabilidade de carga — melhor para sistemas de resgate estáticos.'},
+  {d:'M', q:'O fator de queda 2 (pior cenário) ocorre quando:', opts:['A corda absorve toda a energia','O resgatista cai abaixo do ponto de ancoragem uma distância igual ao dobro do comprimento de corda disponível','A queda é de 2 metros','O nó de oito está mal feito','O resgatista está acima da ancoragem sem corda entre eles'], ans:4, exp:'Fator de queda = distância de queda / comprimento de corda. Fator 2 = pior caso: resgatista acima da ancoragem sem corda de folga cai o dobro da distância.'},
+  {d:'M', q:'O dispositivo "stop" ou "ID" (Petzl) é um descensor:', opts:['De uso manual apenas','Semi-automático que trava quando se solta a alavanca','Mecânico sem travamento automático','Usado apenas em cordas de 12 mm','Proibido em resgate'], ans:1, exp:'Stop/ID: descensor semi-automático com trava de posição morta — para a descida ao soltar a alavanca.'},
+  {d:'M', q:'Em resgate de vítima em edificação, a linha de vida horizontal deve ter deflexão máxima de:', opts:['5°','10°','15°','30°','45°'], ans:2, exp:'Linha de vida horizontal: deflexão máxima de 15° para limitar as forças nos pontos de ancoragem terminais.'},
+  {d:'M', q:'O cinto tipo paraquedista (arnês full body) é obrigatório em trabalhos em altura quando:', opts:['A altura supera 3 m','Sempre que houver risco de queda','Apenas em telhados','Apenas para bombeiros','Quando o vento superar 40 km/h'], ans:1, exp:'NR-35: o arnês deve ser usado sempre que houver risco de queda, independentemente da altura.'},
+  {d:'D', q:'Num sistema de ancoragem em "V" com ângulo de 60° entre os ramos, a força em cada ramo é:', opts:['Igual ao peso','57% do peso','100% do peso','Maior que o peso','50% do peso'], ans:1, exp:'Com ângulo de 60° no V, cada ramo suporta ~57% da carga. A 120° cada ramo já suporta 100%. Ideal manter < 60°.'},
+  {d:'D', q:'Em resgate de vítima em estrutura com risco de colapso, a ancoragem deve ser:', opts:['Na própria estrutura comprometida','Externa e independente da estrutura comprometida','Improvisada com o que houver','Sem ancoragem fixa para agilizar','No veículo de resgate próximo'], ans:1, exp:'Ancoragem sempre independente da estrutura comprometida — edificações vizinhas, viaturas, postes ou sistemas portáteis.'},
+  {d:'D', q:'O teste de carga estática em sistema de ancoragem para resgate humano requer resistência mínima de:', opts:['500 kgf','1000 kgf (≈10 kN)','2000 kgf','300 kgf','Qualquer carga que o resgatista suporte'], ans:1, exp:'Sistemas de resgate pessoal: resistência mínima de 1000 kgf (10 kN) nos pontos de ancoragem, conforme normas EN e NFPA 1983.'},
+  {d:'D', q:'A técnica de "pick-off" em salvamento em altura consiste em:', opts:['Elevar uma vítima soterrada','Resgatar vítima presa em local inacessível, com o resgatista descendo até ela pelo sistema de cordas','Descer carga pesada por polipasto','Ancoragem em ponto único','Nó para fixação de vítima inconsciente'], ans:1, exp:'Pick-off: resgate de vítima presa (arranha-céu, antena, penhasco) com o resgatista descendo até ela e ambos subindo/descendo juntos.'},
+  {d:'D', q:'A força máxima transmitida ao corpo em queda com absorvedor de energia deve ser inferior a:', opts:['2 kN','4 kN','6 kN','8 kN','10 kN'], ans:2, exp:'EN 355 / ABNT NBR 15834: absorvedor deve limitar a força de choque no corpo a no máximo 6 kN.'},
+  {d:'D', q:'O klemheist (prussik duplo) se diferencia do prussik simples porque:', opts:['É mais rápido','Funciona apenas em cordas finas','Permite travamento bidirecional e funciona bem com fita tubular','Usa menos corda','É mais fraco'], ans:2, exp:'Klemheist: trava bidirecionalmente, funciona com fita tubular — mais versátil que o prussik simples em algumas situações.'},
+],
+
+sv: [
+  {d:'F', q:'Em acidente veicular com vítima encarcerada, a primeira ação do bombeiro é:', opts:['Cortar o poste A','Estabilizar o veículo','Remover o teto','Extrair a vítima imediatamente','Aplicar colar cervical'], ans:1, exp:'Primeiro: estabilizar o veículo (calços, correntes, escoras) para evitar movimentos durante o resgate.'},
+  {d:'F', q:'O poste "A" de um veículo é o pilar localizado:', opts:['Entre as portas traseiras','Entre as portas dianteira e traseira','Na frente do para-brisa (suporte do para-brisa)','Na traseira do veículo','No teto, acima das portas'], ans:2, exp:'Poste A: pilar dianteiro que suporta o para-brisa. B: entre as portas. C: pilar traseiro.'},
+  {d:'F', q:'O equipamento hidráulico de resgate veicular é popularmente chamado de:', opts:['Mandíbulas do inferno','Spreader','Cutter','Combi-tool','Mandíbulas da Vida (Jaws of Life)'], ans:4, exp:'Jaws of Life = Mandíbulas da Vida — nome comercial que se tornou popular para todo conjunto hidráulico de resgate veicular.'},
+  {d:'F', q:'O triângulo de sinalização deve ser posicionado a que distância mínima do veículo acidentado em rodovia?', opts:['30 m','50 m','100 m','200 m','300 m'], ans:2, exp:'Em rodovias: triângulo a 100 m antes do veículo. Em vias urbanas: 30-50 m.'},
+  {d:'F', q:'Em veículo com airbag não disparado, o bombeiro deve evitar trabalhar na área de:', opts:['Pneus','Janelas traseiras','Frente do airbag (zona de projeção)','Teto','Portas traseiras'], ans:2, exp:'Airbag não disparado: não colocar ferramentas, corpo ou vítima na trajetória de inflação.'},
+  {d:'F', q:'A desconexão da bateria deve ser feita na seguinte ordem:', opts:['Positivo primeiro, depois negativo','Negativo primeiro, depois positivo','Qualquer ordem','Somente o positivo','Somente o negativo se houver incêndio'], ans:1, exp:'Bateria: desconectar sempre o cabo NEGATIVO (massa) primeiro para evitar curto-circuito.'},
+  {d:'M', q:'O "dash roll" (rolamento do painel) é realizado para:', opts:['Remover o teto','Afastar o painel da vítima presa pelas pernas','Cortar os postes B e C','Remover portas','Inclinar o banco'], ans:1, exp:'Dash roll: empurra o painel e colunas dianteiras para frente, liberando espaço para as pernas da vítima presas sob o painel.'},
+  {d:'M', q:'Em veículo elétrico/híbrido, os cabos de alta tensão são identificados pela cor:', opts:['Vermelha','Azul','Laranja','Amarela','Preta'], ans:2, exp:'Cabos alaranjados = alta tensão (300-800V+) em veículos elétricos/híbridos. Requer luvas isolantes e ferramentas isoladas.'},
+  {d:'M', q:'A técnica de "third door" (terceira porta) consiste em:', opts:['Abrir a porta traseira','Criar abertura ampla cortando o poste B e removendo as duas portas de um lado','Cortar o teto lateralmente','Remover o para-brisa','Cortar o poste A'], ans:1, exp:'Third door: cortar o poste B e rebater/remover as duas portas de um lado — cria abertura ampla para extração lateral.'},
+  {d:'M', q:'Veículo capotado sobre o teto: após estabilização, a sequência preferencial é:', opts:['Cortar todos os postes imediatamente','Remover vidros → estabilizar → ampliar acesso cortando postes se necessário','Empurrar o veículo de volta','Extrair pela janela imediatamente','Cortar o assoalho'], ans:1, exp:'Veículo invertido: estabilizar, remover vidros, verificar a vítima, depois ampliar o acesso conforme necessário.'},
+  {d:'M', q:'O kit de estabilização de veículo inclui:', opts:['Apenas calços de madeira','Calços, correntes de retenção, cunhas e escoras','Somente macacos hidráulicos','Apenas cordas','Extintor + cones'], ans:1, exp:'Estabilização: calços (step chocks), cunhas, correntes/cintas de retenção e escoras telescópicas.'},
+  {d:'M', q:'Em incêndio pós-colisão com vítima encarcerada, a prioridade é:', opts:['Extração imediata sem estabilização','Extinção + extração simultânea com duas equipes','Esperar o fogo apagar','Acionar apenas o SAMU','Cobrir a vítima com cobertor'], ans:1, exp:'Incêndio + vítima encarcerada: dupla equipe — extinção do fogo simultaneamente à extração. Não esperar.'},
+  {d:'M', q:'O espalhador hidráulico (spreader) é usado para:', opts:['Cortar postes de aço','Abrir espaços entre estruturas (portas, painel)','Remover vidros','Cortar cintos','Elevar o veículo'], ans:1, exp:'Espalhador: abre espaços entre superfícies metálicas — principalmente portas travadas, painéis amassados.'},
+  {d:'M', q:'O airbag lateral de cortina (side curtain) inflado representa risco de:', opts:['Envenenar a vítima','Impedir o corte do poste A sem comprometer a integridade e liberar gás quente','Explodir com ferramenta metálica','Sufocar a vítima','Nenhum risco específico'], ans:1, exp:'Cortina de airbag: ocupa toda a extensão do teto lateral — dificulta o corte do poste A.'},
+  {d:'D', q:'Em acidente com veículo blindado, a extração é dificultada porque:', opts:['O veículo é maior','O aço blindado resiste às ferramentas hidráulicas convencionais','Os vidros são mais finos','O combustível é diferente','Os sistemas de ignição são mais complexos'], ans:1, exp:'Blindados: aço de alta resistência balística (HB 500+) resiste ou danifica equipamentos hidráulicos. Requer ferramentas mais potentes.'},
+  {d:'D', q:'A pressão hidráulica típica de operação de ferramentas de resgate veicular é de:', opts:['100-200 bar','400-700 bar','700-1000 bar','50-100 bar','1000-2000 bar'], ans:1, exp:'Ferramentas hidráulicas de resgate: operam tipicamente entre 400-700 bar, com forças de expansão/corte de até 60 toneladas.'},
+  {d:'D', q:'Em veículo elétrico com bateria de lítio em chamas, a extinção requer:', opts:['CO₂ apenas','Pó químico seco','Volume elevado de água por horas para resfriar ou cobertor específico','Espuma mecânica','Halon'], ans:2, exp:'Bateria Li-ion em thermal runaway: CO₂ e PQS não suprimem. Necessário enorme volume de água por horas para resfriar.'},
+  {d:'D', q:'A extração "rapid extrication" (extração rápida) é realizada quando:', opts:['A equipe tem pressa','Há risco imediato de vida (PCR, incêndio), com mínima imobilização e em < 2 min','Usa mais equipamentos','Exige mais bombeiros','É feita somente com KED'], ans:1, exp:'Rapid extrication: < 2 min com risco imediato de vida — suporte manual de coluna apenas, aceita-se o risco espinhal para salvar a vida.'},
+  {d:'D', q:'Após desligar a ignição de veículo elétrico, deve-se aguardar no mínimo _____ antes de cortar cabos de alta tensão:', opts:['30 segundos','2 minutos','5-10 minutos (descarga dos capacitores)','30 minutos','1 hora'], ans:2, exp:'Capacitores e inversores retêm carga após desligar — aguardar 5-10 min conforme manual do fabricante.'},
+  {d:'D', q:'Em MCI (Incidente de Múltiplas Vítimas) com ônibus capotado, o sistema de triagem utilizado é:', opts:['START apenas','SALT','Triagem hospitalar','Não há triagem','Apenas avaliação clínica'], ans:0, exp:'Para múltiplas vítimas em acidente: START (Simple Triage and Rapid Treatment) é o protocolo pré-hospitalar padrão.'},
+],
+
+tmi: [
+  {d:'F', q:'O triângulo do fogo é composto por:', opts:['Calor, fumaça e combustível','Calor, comburente (O₂) e combustível','Calor, ignição e propagação','Combustível, faísca e pressão','Oxigênio, temperatura e pressão'], ans:1, exp:'Triângulo do fogo: Calor + Combustível + Comburente (O₂). Remover qualquer um extingue o fogo.'},
+  {d:'F', q:'O agente extintor que atua por RESFRIAMENTO é:', opts:['Pó Químico Seco','CO₂','Halon','Água','Espuma química'], ans:3, exp:'Água: principal agente de resfriamento — absorve calor reduzindo a temperatura abaixo do ponto de ignição.'},
+  {d:'F', q:'Incêndio classe "B" envolve:', opts:['Sólidos comuns (madeira, papel)','Líquidos e gases inflamáveis','Equipamentos elétricos energizados','Metais combustíveis','Gorduras e óleos de cozinha'], ans:1, exp:'Classe B: líquidos inflamáveis (gasolina, álcool, óleo) e gases (GLP, H₂). Extintores: CO₂, PQS, espuma.'},
+  {d:'F', q:'O fenômeno de "flashover" em incêndio estrutural é:', opts:['Explosão de gases no exterior','Ignição simultânea de todos os materiais combustíveis do ambiente (transição para incêndio total)','Colapso do teto','Explosão de janelas','Saída de fumaça pelo teto'], ans:1, exp:'Flashover: momento em que gases e materiais atingem temperatura de ignição simultaneamente — transição súbita para incêndio generalizado.'},
+  {d:'F', q:'O extintor de CO₂ é indicado para incêndio em equipamentos elétricos porque:', opts:['Resfria melhor que a água','Não conduz eletricidade e não danifica equipamentos','É mais barato','Tem maior alcance','É obrigatório por norma'], ans:1, exp:'CO₂: não condutor elétrico, não deixa resíduo, sufoca o fogo. Ideal para equipamentos elétricos.'},
+  {d:'F', q:'A linha de ataque direta em combate a incêndio estrutural posiciona a mangueira:', opts:['Perpendicular ao fogo','Entre a saída e o fogo, atacando a base das chamas','Atrás da equipe de resgate','No exterior do edifício','Acima do foco'], ans:1, exp:'Ataque direto: mangueira entre a saída de escape e o foco, aplicando água diretamente na base das chamas.'},
+  {d:'M', q:'O "backdraft" ocorre quando:', opts:['O flashover produz explosão','Um ambiente sem O₂ recebe entrada súbita de ar e os gases acumulados inflamam explosivamente','O teto colapsa','A fumaça cria nuvem explosiva','A pressão derruba paredes'], ans:1, exp:'Backdraft: incêndio com privação de O₂ produz gases; ao abrir porta/janela, o O₂ entra e causa combustão explosiva.'},
+  {d:'M', q:'O ponto de fulgor de um líquido inflamável é:', opts:['Temperatura de autoignição','Temperatura mínima na qual o líquido emite vapores suficientes para inflamar-se na presença de ignição','Temperatura de ebulição','Temperatura de extinção','Temperatura máxima de transporte'], ans:1, exp:'Ponto de fulgor (flash point): temperatura mínima para que o líquido libere vapores em concentração inflamável. Gasolina: -43°C; Etanol: 13°C.'},
+  {d:'M', q:'Em incêndio em GLP (chama de tocha/jet fire), a técnica correta é:', opts:['Aplicar CO₂ diretamente','Resfriar o cilindro com água e fechar a válvula — NÃO extinguir sem fechar a válvula','Usar espuma mecânica','Afastar o cilindro com mangueira','Cobrir com lona'], ans:1, exp:'GLP em chama de tocha: não extinguir sem fechar a válvula — cria nuvem inflamável. Resfriar o recipiente e fechar a válvula primeiro.'},
+  {d:'M', q:'A BLEVE envolvendo GLP pode lançar fragmentos a distâncias de até:', opts:['50 m','100 m','300 m','800 m','Mais de 1 km'], ans:3, exp:'BLEVE de GLP: fragmentos podem ser projetados a 600-800 m ou mais. A zona de isolamento deve ser ampla.'},
+  {d:'M', q:'A espuma mecânica aplicada sobre líquido inflamável age por:', opts:['Resfriamento apenas','Sufocamento (cobre a superfície) e resfriamento','Inibição química em cadeia','Diluição do combustível','Reação química com o líquido'], ans:1, exp:'Espuma: forma manta sobre o líquido (sufocamento, bloqueia O₂) e reduz a temperatura da superfície (resfriamento).'},
+  {d:'M', q:'O equipamento de proteção respiratória para ambiente IDLH é:', opts:['Máscara facial com filtro P3','Respirador PFF2','SCBA (Self-Contained Breathing Apparatus)','Máscaras N95','Respirador de adução de ar'], ans:2, exp:'SCBA (AR autônomo): único EPI respiratório adequado para ambientes IDLH — fornece ar próprio independente da atmosfera.'},
+  {d:'M', q:'A "linha de espera" (backup line) em operação interna de incêndio serve para:', opts:['Apoiar com mais água','Proteger a equipe de ataque caso haja inversão das chamas ou flashover','Resgatar vítimas','Controlar a saída de fumaça','Abastecer o carro pipa'], ans:1, exp:'Linha de espera (backup): posicionada atrás da linha de ataque, pronta para proteger a equipe caso haja deterioração rápida.'},
+  {d:'M', q:'A técnica de "penciling" da mangueira consiste em:', opts:['Jogar água no teto em círculos','Aplicar curtas rajadas d\'água pulsando diretamente nas chamas','Resfriar as paredes em linha','Criar névoa ao redor da equipe','Abrir totalmente o esguicho'], ans:1, exp:'Penciling: curtos pulsos de névoa direcionados às chamas — resfria sem gerar vapor excessivo.'},
+  {d:'D', q:'O "gas cooling" em ataque indireto é realizado:', opts:['Jogando água diretamente nas chamas','Aplicando spray de água no teto/gases quentes para reduzir temperatura e retardar o flashover','Ventilando o ambiente','Jogando água nas paredes','Usando CO₂ nos gases'], ans:1, exp:'Gas cooling: pulverizar névoa a 45° para o teto — absorve calor dos gases quentes, reduzindo risco de flashover.'},
+  {d:'D', q:'O fogo classe "D" (metais combustíveis como magnésio) é extinto com:', opts:['Água abundante','CO₂','PQS BC','Areia seca ou agente especial Classe D','Espuma mecânica'], ans:3, exp:'Classe D: água reage violentamente com muitos metais. Usar areia seca, pó de grafite ou agentes especiais Classe D.'},
+  {d:'D', q:'A taxa mínima de aplicação de espuma para incêndio em plano de líquido inflamável é:', opts:['1 L/min/m²','2,5 L/min/m²','5 L/min/m²','10 L/min/m²','15 L/min/m²'], ans:1, exp:'NFPA 11: taxa mínima de 2,5-4 L/min/m² para espuma de baixa expansão em superfície de líquido inflamável.'},
+  {d:'D', q:'O "slopping over" em incêndio de tanque de petróleo ocorre quando:', opts:['O tanque explode','Água sobre produto quente gera vapor que empurra o produto para fora do tanque violentamente','O vapor sai pelo dreno','O produto derrama pela válvula de alívio','A parede causa ignição externa'], ans:1, exp:'Slopping over: água em produto aquecido evapora instantaneamente e empurra o produto — derramamento súbito de líquido em chamas.'},
+  {d:'D', q:'O bulbo VERMELHO do sprinkler ativa a temperatura de:', opts:['57°C','68°C','79°C','93°C','141°C'], ans:1, exp:'Sprinkler por cor: Laranja=57°C, Vermelho=68°C, Amarelo=79°C, Verde=93°C, Azul=141°C, Preto=260°C.'},
+  {d:'D', q:'A vazão típica de uma mangueira de 2½" (65 mm) em plena pressão operacional é de:', opts:['100 L/min','250 L/min','600-750 L/min','1.500 L/min','2.000 L/min'], ans:2, exp:'Mangueira 2½" (65mm): vazão de 600-750 L/min. Linha de 1½" (40mm): ≈230 L/min.'},
+],
+
+if: [
+  {d:'F', q:'O índice de perigo de incêndios florestais mais utilizado no Brasil é o:', opts:['FWI (Fire Weather Index)','FPI','NDVI','FMA (Fórmula de Monte Alegre)','McArthur'], ans:3, exp:'FMA (Fórmula de Monte Alegre): índice mais usado no Brasil, desenvolvido para as condições climáticas nacionais.'},
+  {d:'F', q:'O principal agente extintor em incêndio florestal é:', opts:['CO₂','Espuma mecânica','Água','Pó Químico Seco','Halon'], ans:2, exp:'Água é o principal agente extintor em incêndios florestais por disponibilidade, custo e eficácia de resfriamento.'},
+  {d:'F', q:'A "linha de retardo" (firebreak/aceiro) em incêndio florestal é:', opts:['Faixa de árvores densas','Faixa limpa de vegetação para impedir o avanço do fogo','Faixa de água represada','Faixa de agente químico','Solo encharcado'], ans:1, exp:'Firebreak/aceiro: faixa sem vegetação que interrompe a continuidade do combustível e bloqueia o avanço do fogo.'},
+  {d:'F', q:'O comportamento do fogo florestal é influenciado por três fatores. Qual NÃO é um deles?', opts:['Combustível','Topografia','Clima/vento','Solo argiloso','Umidade do ar'], ans:3, exp:'Triângulo do comportamento do fogo: Combustível + Topografia + Clima (vento, umidade). Solo argiloso não é um dos 3.'},
+  {d:'F', q:'A ferramenta "pulaski" é utilizada para:', opts:['Aplicar água','Criar aceiro (escavar + cortar) e construir linhas de contenção','Detectar focos com infravermelho','Comunicação no campo','Ativar retardante aéreo'], ans:1, exp:'Pulaski: ferramenta combinada (machado + enxada/picareta) para cortar vegetação e escavar solo na construção de linhas de contenção.'},
+  {d:'F', q:'O fogo de copas (crown fire) é aquele que:', opts:['Queima somente a serrapilheira','Queima o sub-bosque','Propaga-se pelas copas das árvores — mais perigoso e difícil de controlar','Queima somente raízes','É extinto facilmente com aceiro'], ans:2, exp:'Fogo de copas: propaga-se pelas copas, independente do fogo de superfície — altíssima velocidade, requer ataque indireto.'},
+  {d:'M', q:'A umidade relativa do ar que indica maior perigo de incêndio florestal é:', opts:['Acima de 60%','Entre 40-60%','Entre 20-40%','Abaixo de 30% (especialmente < 20%)','Qualquer umidade com vento forte'], ans:3, exp:'UR abaixo de 30% (especialmente < 20%) resseca o combustível e aumenta drasticamente o perigo de incêndio florestal.'},
+  {d:'M', q:'Em topografia, o incêndio florestal se propaga mais rapidamente em:', opts:['Terreno plano','Vales','Encostas ascendentes (morro acima)','Encostas descendentes','Margens de rios'], ans:2, exp:'Fogo sobe encostas mais rápido: pré-aquece o combustível à frente por convecção ascendente e seca a vegetação acima.'},
+  {d:'M', q:'O ataque indireto em incêndio florestal é realizado quando:', opts:['O fogo é pequeno','O fogo é de alta intensidade — cria-se linha de contenção à distância e usa-se contrafogo','Há muita água disponível','O vento está calmo','A umidade é alta'], ans:1, exp:'Ataque indireto: construção de aceiros à distância + contrafogo controlado — para fogos intensos onde o ataque direto é impossível.'},
+  {d:'M', q:'O contrafogo (backfire) é:', opts:['Fogo acidental paralelo ao principal','Técnica de queimar o combustível em frente ao incêndio de forma controlada, criando zona sem combustível','Fogo iniciado por raio','Sistema de sprinkler florestal','Incêndio de copas'], ans:1, exp:'Contrafogo: queima controlada do combustível entre a linha de contenção e o fogo principal — remove o combustível antes da frente chegar.'},
+  {d:'M', q:'O retardante de longa duração (slurry vermelho) é baseado em:', opts:['Água com corante','Espuma concentrada','Fosfato de amônio (fertilizante)','Bicarbonato de sódio','CO₂ líquido'], ans:2, exp:'Retardante de longa duração: fosfato de amônio com corante vermelho — inibe a combustão quimicamente mesmo após a água evaporar.'},
+  {d:'M', q:'Em operação de incêndio florestal, a zona de segurança deve ter tamanho mínimo de:', opts:['50 m do fogo','A distância do aceiro','Área limpa ≥ 4x a altura esperada das chamas, com 2 rotas de fuga','Qualquer clareira','Dentro do veículo'], ans:2, exp:'Zona de segurança: ≥ 4x a altura das chamas + 2 rotas de fuga identificadas (regra LCES).'},
+  {d:'M', q:'LCES (sistema de segurança em incêndio florestal) significa:', opts:['Lookouts, Communications, Escape routes, Safety zones','Lines, Canals, Engines, Suppression','Locais, Corredores, Extintores, Sinais','Low, Control, Extinguish, Secure','Level, Contain, Escape, Secure'], ans:0, exp:'LCES: Lookouts (vigias), Communications (comunicação), Escape routes (rotas de fuga), Safety zones (zonas de segurança).'},
+  {d:'M', q:'O período de maior perigo de incêndio florestal no Pará ocorre entre:', opts:['Janeiro-março','Março-junho','Julho-novembro (estação seca)','Novembro-janeiro','Todo o ano igualmente'], ans:2, exp:'No Pará e Amazônia, a estação seca (julho-novembro) concentra o maior risco de incêndios florestais.'},
+  {d:'D', q:'A "armadilha de fogo" (fire trap) configura-se quando:', opts:['O fogo circunda a equipe','Topografia (vale, cânion, encosta) canaliza vento e fogo, impossibilitando a fuga','O vento muda subitamente','Há excesso de combustível','A zona de segurança está ocupada'], ans:1, exp:'Fire trap: combinação de topografia + vento que acelera e canaliza o fogo, bloqueando a fuga — alto risco de morte.'},
+  {d:'D', q:'O NDVI (Índice de Vegetação por Diferença Normalizada) é usado para:', opts:['Medir velocidade do vento','Estimar biomassa/vegetação verde por satélite, identificando áreas de vegetação seca','Detectar focos de calor','Calcular o FMA','Mapear rios'], ans:1, exp:'NDVI: índice de satélite que mede o "verdor" da vegetação. NDVI baixo = vegetação seca/estressada = maior risco de incêndio.'},
+  {d:'D', q:'O sistema INPE de monitoramento detecta focos de calor acima de temperatura de superfície de aproximadamente:', opts:['30°C','47°C','60°C','80°C','100°C'], ans:1, exp:'INPE/BDQueimadas: detecta anomalias termais (focos de calor) com temperatura de brilho ≥ 47°C nas imagens dos satélites.'},
+  {d:'D', q:'A técnica de "burnout" difere do contrafogo porque:', opts:['É realizado por aeronaves','Elimina o combustível entre o aceiro e o fogo, próximo à linha de contenção já estabelecida','É usada apenas em campo aberto','Usa retardante químico','É proibida no Brasil'], ans:1, exp:'Burnout: queima o combustível entre o aceiro pronto e o fogo — mais próximo e controlado que o contrafogo.'},
+  {d:'D', q:'O plano LCES falha principalmente quando:', opts:['A equipe está cansada','As comunicações falham em terreno acidentado, isolando vigias e equipes de combate','O combustível é diferente','O sol se põe antes','Falta equipamento'], ans:1, exp:'Falha crítica do LCES: ruptura de comunicação — sem ela, alertas de perigo não chegam a tempo às equipes.'},
+  {d:'D', q:'Em incêndio no Cerrado, o fator que mais contribui para a alta velocidade de propagação é:', opts:['Altitude elevada','Gramíneas secas + clima seco + vento','Solos arenosos','Relevo plano','Ausência de rios'], ans:1, exp:'Cerrado: gramíneas secas abundantes + estação seca + ventos = propagação muito rápida, mesmo sem topografia desfavorável.'},
+],
+
+};
+
+// ── Estado ──────────────────────────────────────────────────────────────────
+let currentSubject = null;
+let currentQIdx = 0;
+let userAnswers = [];
+let completedSubjects = {};
+
+// ── Render seletor ──────────────────────────────────────────────────────────
+function renderSelector() {
+  document.getElementById('hd-sub').textContent = 'Escolha uma matéria para iniciar';
+  document.getElementById('prog').style.width = '0%';
+  document.getElementById('subject-select').style.display = 'block';
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('result-area').style.display = 'none';
+  document.getElementById('result-area').innerHTML = '';
+
+  const grid = document.getElementById('subject-grid');
+  grid.innerHTML = '';
+  SUBJECTS.forEach(s => {
+    const qs = QUESTIONS[s.id];
+    const done = completedSubjects[s.id];
+    const card = document.createElement('div');
+    card.className = 'subj-card' + (done ? ' done' : '');
+    card.innerHTML = `<span class="icon">${s.icon}</span><h3>${s.name}</h3><p>${done ? '✅ Concluída' : qs.length + ' questões · Fácil/Mod/Difícil'}</p>`;
+    card.onclick = () => startSubject(s.id);
+    grid.appendChild(card);
+  });
+}
+
+// ── Iniciar matéria ─────────────────────────────────────────────────────────
+function startSubject(id) {
+  currentSubject = id;
+  currentQIdx = 0;
+  userAnswers = new Array(QUESTIONS[id].length).fill(null);
+
+  document.getElementById('subject-select').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'block';
+  document.getElementById('result-area').style.display = 'none';
+
+  const subj = SUBJECTS.find(s => s.id === id);
+  document.getElementById('quiz-title').textContent = subj.icon + ' ' + subj.name;
+  document.getElementById('hd-sub').textContent = subj.name;
+
+  buildDots();
+  renderQuestion();
+}
+
+// ── Dots ────────────────────────────────────────────────────────────────────
+function buildDots() {
+  const qs = QUESTIONS[currentSubject];
+  const dotsDiv = document.getElementById('q-dots');
+  dotsDiv.innerHTML = '';
+  qs.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' current' : '');
+    d.id = 'dot-' + i;
+    d.onclick = () => { currentQIdx = i; renderQuestion(); };
+    dotsDiv.appendChild(d);
+  });
+}
+
+function updateDots() {
+  const qs = QUESTIONS[currentSubject];
+  qs.forEach((_, i) => {
+    const d = document.getElementById('dot-' + i);
+    if (!d) return;
+    d.className = 'dot' + (userAnswers[i] !== null ? ' answered' : '') + (i === currentQIdx ? ' current' : '');
+  });
+}
+
+// ── Render questão ──────────────────────────────────────────────────────────
+function renderQuestion() {
+  const qs = QUESTIONS[currentSubject];
+  const q = qs[currentQIdx];
+  const total = qs.length;
+
+  document.getElementById('q-counter').textContent = (currentQIdx + 1) + ' / ' + total;
+  document.getElementById('prog').style.width = ((currentQIdx + 1) / total * 100) + '%';
+
+  const dbEl = document.getElementById('diff-badge');
+  dbEl.className = 'diff-badge ' + DIFF_CLS[q.d];
+  dbEl.textContent = DIFF_LABEL[q.d];
+
+  document.getElementById('q-text').textContent = q.q;
+
+  const optsDiv = document.getElementById('options');
+  optsDiv.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const div = document.createElement('div');
+    div.className = 'opt' + (userAnswers[currentQIdx] === i ? ' selected' : '');
+    div.innerHTML = `<span class="opt-l">${LETTERS[i]}</span><span>${o}</span>`;
+    div.onclick = () => selectAnswer(i);
+    optsDiv.appendChild(div);
+  });
+
+  const isLast = currentQIdx === total - 1;
+  document.getElementById('btn-prev').style.display = currentQIdx === 0 ? 'none' : 'block';
+  document.getElementById('btn-next').style.display = isLast ? 'none' : 'block';
+  document.getElementById('btn-submit').style.display = isLast ? 'block' : 'none';
+
+  updateDots();
+}
+
+function selectAnswer(i) {
+  userAnswers[currentQIdx] = i;
+  renderQuestion();
+}
+
+function prevQ() { if (currentQIdx > 0) { currentQIdx--; renderQuestion(); } }
+function nextQ() { const total = QUESTIONS[currentSubject].length; if (currentQIdx < total - 1) { currentQIdx++; renderQuestion(); } }
+
+// ── Submeter ────────────────────────────────────────────────────────────────
+function submitQuiz() {
+  const unanswered = userAnswers.filter(a => a === null).length;
+  if (unanswered > 0) {
+    if (!confirm(`Você deixou ${unanswered} questão(ões) sem responder. Deseja ver o gabarito assim mesmo?`)) return;
+  }
+  showResult();
+}
+
+// ── Resultado ────────────────────────────────────────────────────────────────
+function showResult() {
+  document.getElementById('quiz-area').style.display = 'none';
+  document.getElementById('result-area').style.display = 'block';
+
+  const qs = QUESTIONS[currentSubject];
+  const subj = SUBJECTS.find(s => s.id === currentSubject);
+
+  let correct = 0, diffStats = {F:{c:0,e:0,t:0},M:{c:0,e:0,t:0},D:{c:0,e:0,t:0}};
+  qs.forEach((q, i) => {
+    diffStats[q.d].t++;
+    if (userAnswers[i] === q.ans) { correct++; diffStats[q.d].c++; }
+    else diffStats[q.d].e++;
+  });
+
+  completedSubjects[currentSubject] = true;
+  const pct = Math.round(correct / qs.length * 100);
+  let emoji, msg;
+  if (pct >= 90) { emoji='🏆'; msg='Excelente domínio desta matéria!'; }
+  else if (pct >= 70) { emoji='✅'; msg='Bom! Revise os pontos errados.'; }
+  else if (pct >= 50) { emoji='⚠️'; msg='Atenção! Estude mais esta matéria.'; }
+  else { emoji='🚨'; msg='Reforce o estudo desta matéria!'; }
+
+  function rbd(key, label, cls) {
+    const {c,e,t} = diffStats[key];
+    const p = t ? Math.round(c/t*100) : 0;
+    return `<div class="rbd-card rbd-${cls}"><div class="rbd-title">${label}</div><div class="rbd-num">${c}/${t}</div><div class="rbd-sub">${p}% acertos · ${Math.round(e/t*100)||0}% erros</div></div>`;
+  }
+
+  // Gabarito
+  const gabHtml = qs.map((q, i) => {
+    const ua = userAnswers[i];
+    const ok = ua === q.ans;
+    const skip = ua === null;
+    let cls = skip ? 'gq-skip' : ok ? 'gq-ok' : 'gq-err';
+    const icon = skip ? '⬜' : ok ? '✅' : '❌';
+    let ansHtml = '';
+    if (!skip && !ok) {
+      ansHtml += `<div class="gab-ans ga-err">❌ Sua resposta: ${LETTERS[ua]} – ${q.opts[ua]}</div>`;
+      ansHtml += `<div class="gab-ans ga-correct">✅ Resposta correta: ${LETTERS[q.ans]} – ${q.opts[q.ans]}</div>`;
+    } else if (ok) {
+      ansHtml += `<div class="gab-ans ga-ok">✅ ${LETTERS[ua]} – ${q.opts[ua]}</div>`;
+    } else {
+      ansHtml += `<div class="gab-ans ga-err">⬜ Não respondida – Correta: ${LETTERS[q.ans]} – ${q.opts[q.ans]}</div>`;
+    }
+    return `<div class="gab-q ${cls}">
+      <div class="gab-num">${icon} Questão ${i+1} · <span class="diff-badge ${DIFF_CLS[q.d]}" style="padding:2px 8px;font-size:9px">${DIFF_LABEL[q.d]}</span></div>
+      <div class="gab-qtext">${q.q}</div>
+      ${ansHtml}
+      ${!ok ? `<div class="gab-exp">💡 ${q.exp}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  window._emailSubject = `Gabarito ${subj.name} – ${pct}%`;
+  window._emailBody =
+    `GABARITO – ${subj.name}\nAcertos: ${correct}/${qs.length} (${pct}%)\n\n` +
+    `Facil: ${diffStats.F.c}/${diffStats.F.t}  Moderado: ${diffStats.M.c}/${diffStats.M.t}  Dificil: ${diffStats.D.c}/${diffStats.D.t}\n\n` +
+    `QUESTOES ERRADAS:\n` +
+    qs.map((q,i) => userAnswers[i] !== q.ans ? `Q${i+1} [${q.d}]: ${q.q.substring(0,70)}...\nCerta: ${LETTERS[q.ans]} – ${q.opts[q.ans]}\nExp: ${q.exp}\n` : null).filter(Boolean).join('\n');
+
+  document.getElementById('result-area').innerHTML = `
+    <div class="res-header">
+      <div class="res-emoji">${emoji}</div>
+      <div class="res-score">${correct}/${qs.length}</div>
+      <div class="res-pct">${pct}% de aproveitamento · ${subj.icon} ${subj.name}</div>
+      <div class="res-msg">${msg}</div>
+      <div class="res-by-diff">
+        ${rbd('F','🟢 Fácil','f')}${rbd('M','🟡 Moderado','m')}${rbd('D','🔴 Difícil','d')}
+      </div>
+    </div>
+
+    <div class="gab-section">
+      <div style="font-size:15px;font-weight:800;margin-bottom:14px">📋 Gabarito Comentado</div>
+      ${gabHtml}
+    </div>
+
+    <div class="res-btns">
+      <button class="rbtn rbtn-retry" onclick="startSubject('${currentSubject}')">🔄 Refazer</button>
+      <button class="rbtn rbtn-menu" onclick="renderSelector()">📚 Outras Matérias</button>
+      <button class="rbtn rbtn-email" id="email-btn" onclick="sendResultEmail(window._emailSubject, window._emailBody)">📧 Enviar resultado</button>
+    </div>
+  `;
+
+  document.getElementById('hd-sub').textContent = subj.name + ' – Gabarito';
+  document.getElementById('prog').style.width = '100%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── EmailJS ─────────────────────────────────────────────────────────────────
+// PASSO 1: Crie conta gratuita em https://www.emailjs.com
+// PASSO 2: Adicione um serviço de email (Gmail) e anote o SERVICE_ID
+// PASSO 3: Crie um template com variáveis {{subject}} e {{message}}, anote o TEMPLATE_ID
+// PASSO 4: Em Account > API Keys, copie o PUBLIC_KEY e preencha abaixo:
+const EMAILJS_CONFIG = {
+  publicKey:  'SEU_PUBLIC_KEY_AQUI',    // ex: 'user_aBcDeFgHiJkLmNoPqRs'
+  serviceId:  'SEU_SERVICE_ID_AQUI',   // ex: 'service_gmail'
+  templateId: 'SEU_TEMPLATE_ID_AQUI'   // ex: 'template_resultado'
+};
+(function(){ try { emailjs.init({publicKey: EMAILJS_CONFIG.publicKey}); } catch(e){} })();
+
+function sendResultEmail(subject, body) {
+  const btn = document.getElementById('email-btn');
+  if (EMAILJS_CONFIG.publicKey === 'SEU_PUBLIC_KEY_AQUI') {
+    alert('⚙️ EmailJS ainda não configurado!\n\nAbra o arquivo HTML e preencha EMAILJS_CONFIG com suas chaves.\nSiga as instruções nos comentários do código.');
+    return;
+  }
+  if (btn) { btn.textContent = '⏳ Enviando...'; btn.disabled = true; }
+  emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+    to_email: 'callegaribi@gmail.com',
+    subject: subject,
+    message: body
+  }).then(() => {
+    if (btn) { btn.textContent = '✅ Enviado!'; }
+  }).catch((err) => {
+    if (btn) { btn.textContent = '❌ Erro — tente novamente'; btn.disabled = false; }
+    console.error('EmailJS error:', err);
+  });
+}
+
+// ── Init ────────────────────────────────────────────────────────────────────
+renderSelector();
+
+// Auto-start via URL hash: simulado_por_materia.html#im → abre direto a matéria
+(function() {
+  const hash = window.location.hash.replace('#', '').toLowerCase();
+  if (hash && QUESTIONS[hash]) {
+    // Pequeno delay para o DOM carregar
+    setTimeout(() => startSubject(hash), 100);
+  }
+})();
+</script>
+</body>
+</html>
